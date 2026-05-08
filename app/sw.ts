@@ -11,7 +11,8 @@ declare global {
 declare const self: WorkerGlobalScope & typeof globalThis;
 
 // 激活时清理所有旧缓存
-self.addEventListener("activate", (event: ExtendableEvent) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+self.addEventListener("activate", (event: any) => {
   event.waitUntil(
     caches.keys().then((cacheNames) =>
       Promise.all(
