@@ -12,6 +12,7 @@ import {
   ChevronRight,
   LogIn,
   LogOut,
+  Tag,
 } from "lucide-react";
 
 export default function MePage() {
@@ -20,6 +21,7 @@ export default function MePage() {
     useAuthStore();
   const [favCount, setFavCount] = useState(0);
   const [readCount, setReadCount] = useState(0);
+  const [subCount, setSubCount] = useState(0);
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
@@ -40,6 +42,10 @@ export default function MePage() {
         }>("/user/profile");
         setFavCount(data.favorite_count || 0);
         setReadCount(data.read_count || 0);
+        
+        // 获取订阅数
+        const subData = await api.get<{ total: number }>("/user/subscriptions");
+        setSubCount(subData.total || 0);
       } catch {
         // stats unavailable
       } finally {
@@ -90,7 +96,9 @@ export default function MePage() {
                 <p className="text-xs text-white/80">历史</p>
               </div>
               <div>
-                <p className="text-xl font-bold">0</p>
+                <p className="text-xl font-bold">
+                  {statsLoading ? "-" : subCount}
+                </p>
                 <p className="text-xs text-white/80">关注</p>
               </div>
             </div>
@@ -127,6 +135,15 @@ export default function MePage() {
         >
           <Clock className="w-5 h-5 text-blue-400 mr-3" />
           <span className="flex-1 text-[15px]">阅读历史</span>
+          <ChevronRight className="w-4 h-4 text-gray-300" />
+        </Link>
+        <Link
+          href="/subscribe?tab=tags"
+          className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
+        >
+          <Tag className="w-5 h-5 text-purple-400 mr-3" />
+          <span className="flex-1 text-[15px]">我的订阅</span>
+          <span className="text-xs text-gray-400 mr-1">{subCount}个</span>
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </Link>
         <a

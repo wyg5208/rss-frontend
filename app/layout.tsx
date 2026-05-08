@@ -24,7 +24,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="zh-CN">
       <body className="bg-gray-100 text-gray-900 antialiased">
         <Providers>
-          <div className="max-w-lg mx-auto min-h-screen bg-white relative">
+          <div className="mx-auto min-h-screen bg-white relative
+            sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
             {children}
           </div>
           <BottomNav />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useTags } from "@/hooks/useTags";
 import { useArticleStore } from "@/store/useArticleStore";
 import ArticleCard from "@/components/ArticleCard";
@@ -10,6 +10,7 @@ import { Heart, Clock, Tag } from "lucide-react";
 type Tab = "favorites" | "history" | "tags";
 
 export default function SubscribePage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>("tags");
   const { data: tags } = useTags(100);
@@ -25,6 +26,11 @@ export default function SubscribePage() {
     { key: "favorites", label: "收藏", icon: Heart },
     { key: "history", label: "历史", icon: Clock },
   ];
+
+  // 点击标签跳转到首页并筛选该标签的文章
+  const handleTagClick = (tagName: string) => {
+    router.push(`/?tag=${encodeURIComponent(tagName)}`);
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -47,11 +53,15 @@ export default function SubscribePage() {
         {tab === "tags" && (
           <div className="p-4"><div className="flex flex-wrap gap-2.5">
             {tags?.map((tag) => (
-              <span key={tag.id} style={{ backgroundColor: (tag.color || "#3b82f6") + "15", color: tag.color || "#3b82f6", borderColor: (tag.color || "#3b82f6") + "30" }}
-                className="px-3 py-1.5 rounded-full text-sm border">
+              <button
+                key={tag.id}
+                onClick={() => handleTagClick(tag.name)}
+                style={{ backgroundColor: (tag.color || "#3b82f6") + "15", color: tag.color || "#3b82f6", borderColor: (tag.color || "#3b82f6") + "30" }}
+                className="px-3 py-1.5 rounded-full text-sm border cursor-pointer hover:opacity-80 transition-opacity active:scale-95"
+              >
                 {tag.name}
                 <span className="ml-1 text-xs opacity-70">{tag.article_count}</span>
-              </span>
+              </button>
             ))}
           </div></div>
         )}

@@ -9,8 +9,10 @@ import { useArticleStore } from "@/store/useArticleStore";
 import SafeHTML from "@/components/SafeHTML";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import AISummaryCard from "@/components/AISummaryCard";
 import { api } from "@/lib/api";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ArticleDetail } from "@/types";
 
 dayjs.locale("zh-cn");
 
@@ -19,13 +21,39 @@ export default function ArticleDetailPage() {
   const router = useRouter();
   const { data: article, isLoading, error } = useArticleDetail(id);
   const { toggleFavorite, isFavorite, addToHistory } = useArticleStore();
+  const [aiData, setAiData] = useState<{ ai_summary?: string; ai_key_points?: string[]; ai_processed_at?: string }>({});
 
   useEffect(() => {
     if (article) {
       addToHistory(article);
       api.post(`/rss/articles/${id}/view`).catch(() => {});
+      loadAIData();
     }
   }, [article, id, addToHistory]);
+
+  async function loadAIData() {
+    if (!article?.id) return;
+    try {
+      const res = await api.get<{ success: boolean; data: any }>(`/ai/article/${article.id}`);
+      if (res.success && res.data) {
+        setAiData({
+          ai_summary: res.data.ai_summary,
+          ai_key_points: res.data.ai_key_points,
+          ai_processed_at: res.data.ai_processed_at
+        });
+      }
+    } catch {
+      // AI数据加载失败不影响主功能
+    }
+  }
+
+  function handleAIPprocessed(data: { ai_summary: string; ai_key_points: string[] }) {
+    setAiData({
+      ai_summary: data.ai_summary,
+      ai_key_points: data.ai_key_points,
+      ai_processed_at: new Date().toISOString()
+    });
+  }
 
   if (isLoading) return (
     <div className="p-4 animate-pulse">
@@ -73,6 +101,16 @@ export default function ArticleDetailPage() {
           {hasHTML && a.raw_content ? (<SafeHTML html={a.raw_content} />)
           : content ? (<div className="text-[15px] leading-relaxed text-gray-800 whitespace-pre-wrap">{content}</div>)
           : (<div className="text-center text-gray-400 py-10"><p>暂无正文内容</p><p className="text-sm mt-2">全文可能需要到原文查看</p></div>)}
+          
+          {/* AI 摘要卡片 (Phase 2) */}
+          <AISummaryCard
+            articleId={a.id}
+            aiSummary={aiData.ai_summary}
+            aiKeyPoints={aiData.ai_key_points}
+            aiProcessedAt={aiData.ai_processed_at}
+            onProcessed={handleAIPprocessed}
+          />
+          
           <a href={a.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1 mt-6 py-3 text-sm text-blue-600 border border-blue-200 rounded-lg">
             <ExternalLink className="w-4 h-4" /> 查看原文
           </a>

@@ -35,6 +35,11 @@ export interface ArticleDetail extends Article {
   url_hash?: string;
   related_articles?: Article[];
   tag_details?: TagDetail[];
+  // AI 字段 (Phase 2)
+  ai_summary?: string;
+  ai_key_points?: string[];
+  ai_tags?: string[];
+  ai_processed_at?: string;
 }
 
 export interface Tag {
