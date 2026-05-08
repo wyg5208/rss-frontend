@@ -11,8 +11,7 @@ import ImageWithFallback from "@/components/ImageWithFallback";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import AISummaryCard from "@/components/AISummaryCard";
 import { api } from "@/lib/api";
-import { useEffect, useState } from "react";
-import { ArticleDetail } from "@/types";
+import { useEffect, useState, useCallback } from "react";
 
 dayjs.locale("zh-cn");
 
@@ -23,29 +22,29 @@ export default function ArticleDetailPage() {
   const { toggleFavorite, isFavorite, addToHistory } = useArticleStore();
   const [aiData, setAiData] = useState<{ ai_summary?: string; ai_key_points?: string[]; ai_processed_at?: string }>({});
 
+  const loadAIData = useCallback(async () => {
+    if (!article?.id) return;
+    try {
+      const res = await api.get<{ success: boolean; data: Record<string, unknown> }>(`/ai/article/${article.id}`);
+      if (res.success && res.data) {
+        setAiData({
+          ai_summary: res.data.ai_summary as string | undefined,
+          ai_key_points: res.data.ai_key_points as string[] | undefined,
+          ai_processed_at: res.data.ai_processed_at as string | undefined
+        });
+      }
+    } catch {
+      // AI数据加载失败不影响主功能
+    }
+  }, [article?.id]);
+
   useEffect(() => {
     if (article) {
       addToHistory(article);
       api.post(`/rss/articles/${id}/view`).catch(() => {});
       loadAIData();
     }
-  }, [article, id, addToHistory]);
-
-  async function loadAIData() {
-    if (!article?.id) return;
-    try {
-      const res = await api.get<{ success: boolean; data: any }>(`/ai/article/${article.id}`);
-      if (res.success && res.data) {
-        setAiData({
-          ai_summary: res.data.ai_summary,
-          ai_key_points: res.data.ai_key_points,
-          ai_processed_at: res.data.ai_processed_at
-        });
-      }
-    } catch {
-      // AI数据加载失败不影响主功能
-    }
-  }
+  }, [article, id, addToHistory, loadAIData]);
 
   function handleAIPprocessed(data: { ai_summary: string; ai_key_points: string[] }) {
     setAiData({

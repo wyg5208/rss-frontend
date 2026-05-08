@@ -116,19 +116,21 @@ export default function AISummaryCard({
     setError(null);
 
     try {
-      const response = await api.post<{ success: boolean; message: string; data: any }>(`/ai/process/${articleId}`);
+      const response = await api.post<{ success: boolean; message: string; data: Record<string, unknown> }>(`/ai/process/${articleId}`);
       const data = response;
 
       if (data.success && onProcessed) {
+        const apiData = data.data;
         onProcessed({
-          ai_summary: data.data?.ai_summary || "",
-          ai_key_points: data.data?.key_points_success ? data.data?.key_points : []
+          ai_summary: (apiData?.ai_summary as string) || "",
+          ai_key_points: (apiData?.key_points_success as boolean) ? (apiData?.key_points as string[]) : []
         });
       } else {
         setError(data.message || "生成失败");
       }
-    } catch (err: any) {
-      setError(err?.message || "请求失败，请重试");
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      setError(error?.message || "请求失败，请重试");
     } finally {
       setIsLoading(false);
     }

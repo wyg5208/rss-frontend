@@ -11,7 +11,7 @@ declare global {
 declare const self: WorkerGlobalScope & typeof globalThis;
 
 // 激活时清理所有旧缓存
-self.addEventListener("activate", (event: any) => {
+self.addEventListener("activate", (event: ExtendableEvent) => {
   event.waitUntil(
     caches.keys().then((cacheNames) =>
       Promise.all(
@@ -23,7 +23,7 @@ self.addEventListener("activate", (event: any) => {
     )
   );
   // 立即接管所有页面
-  (self as any).clients.claim();
+  (self as unknown as { clients: { claim: () => Promise<void> } }).clients.claim();
 });
 
 const serwist = new Serwist({
