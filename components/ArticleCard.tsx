@@ -33,7 +33,7 @@ export default function ArticleCard({ article }: Props) {
             </div>
           </div>
           <div className="flex-shrink-0 w-[110px] h-[74px]">
-            <ImageWithFallback src={article.image_url} alt={article.title} width={110} height={74} className="rounded-md object-cover w-full h-full" />
+            <ImageWithFallback src={article.image_url} alt={article.title} className="rounded-md object-cover w-full h-full" />
           </div>
         </article>
       </Link>
