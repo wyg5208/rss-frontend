@@ -6,25 +6,28 @@ import SearchBar from "@/components/SearchBar";
 import CategoryTabs from "@/components/CategoryTabs";
 import ArticleList from "@/components/ArticleList";
 import { useArticles } from "@/hooks/useArticles";
-import { useTagCategories } from "@/hooks/useTags";
 
-const FIXED_TABS = ["推荐", "全部"];
+// 固定中文分类Tab，对应后端 tag_category 筛选
+const CATEGORY_TABS = [
+  { label: "推荐", value: "" },
+  { label: "全部", value: "all" },
+  { label: "科技", value: "科技" },
+  { label: "经济", value: "经济" },
+  { label: "教育", value: "教育" },
+  { label: "政治", value: "政治" },
+  { label: "全球", value: "全球" },
+  { label: "生活", value: "生活" },
+];
 
 function HomeContent() {
   const searchParams = useSearchParams();
-  const urlTag = searchParams.get("tag");  // 从URL读取标签筛选
-  const [activeTab, setActiveTab] = useState(urlTag ? decodeURIComponent(urlTag) : "推荐");
-  const { data: categoriesData } = useTagCategories();
-
-  // 合并固定TAB + 后端标签分类
-  const categories = useMemo(() => {
-    const backendCats = categoriesData?.map((c) => c.name) || [];
-    return [...FIXED_TABS, ...backendCats.filter((c) => !FIXED_TABS.includes(c))];
-  }, [categoriesData]);
+  const urlTag = searchParams.get("tag");
+  const [activeTab, setActiveTab] = useState(
+    urlTag ? decodeURIComponent(urlTag) : "推荐"
+  );
 
   // 推荐/全部不筛选，URL标签筛选优先，其他用 tag_category 筛选
   const filters = useMemo(() => {
-    // 如果URL有tag参数，优先使用tag筛选
     if (urlTag) {
       return { tag: decodeURIComponent(urlTag) };
     }
@@ -46,7 +49,11 @@ function HomeContent() {
           </div>
         </div>
       </header>
-      <CategoryTabs categories={categories} active={activeTab} onChange={setActiveTab} />
+      <CategoryTabs
+        categories={CATEGORY_TABS.map((t) => t.label)}
+        active={activeTab}
+        onChange={setActiveTab}
+      />
       <div className="flex-1 pb-14">
         <ArticleList
           articles={articles}
