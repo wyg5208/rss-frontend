@@ -10,17 +10,12 @@ declare global {
 
 declare const self: WorkerGlobalScope & typeof globalThis;
 
-// 过滤掉 API 请求的缓存策略，让 Next.js rewrites 代理处理
-const filteredCache = defaultCache.filter(
-  (entry) => !entry.urlPattern.toString().includes("/api/")
-);
-
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: false,
-  runtimeCaching: filteredCache,
+  runtimeCaching: defaultCache,
 });
 
 serwist.addEventListeners();
