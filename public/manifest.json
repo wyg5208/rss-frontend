@@ -1,0 +1,22 @@
+{
+  "name": "RSS新闻聚合",
+  "short_name": "RSS新闻",
+  "description": "RSS智能新闻聚合 - 移动端阅读体验",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#EF4444",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": [
+    "news",
+    "information"
+  ],
+  "lang": "zh-CN"
+}

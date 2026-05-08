@@ -1,0 +1,8 @@
+﻿rss-frontend@0.1.0 D:\python_projects\rss-frontend
+Γö£ΓöÇΓö¼ @serwist/next@9.5.11
+Γöé Γö£ΓöÇΓö¼ @serwist/window@9.5.11
+Γöé Γöé ΓööΓöÇΓöÇ serwist@9.5.11 deduped
+Γöé ΓööΓöÇΓöÇ serwist@9.5.11
+ΓööΓöÇΓö¼ @serwist/sw@9.5.11
+  ΓööΓöÇΓöÇ serwist@9.5.11 deduped
+
