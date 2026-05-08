@@ -10,6 +10,22 @@ declare global {
 
 declare const self: WorkerGlobalScope & typeof globalThis;
 
+// 激活时清理所有旧缓存
+self.addEventListener("activate", (event: any) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames.map((cacheName) => {
+          console.log(`[SW] 清理旧缓存: ${cacheName}`);
+          return caches.delete(cacheName);
+        })
+      )
+    )
+  );
+  // 立即接管所有页面
+  (self as any).clients.claim();
+});
+
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
