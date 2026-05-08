@@ -7,8 +7,8 @@ import { LogIn, AlertCircle } from "lucide-react";
 
 const AUTH_URL =
   typeof window !== "undefined"
-    ? process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:8008"
-    : "http://localhost:8008";
+    ? process.env.NEXT_PUBLIC_AUTH_URL || ""
+    : "";
 
 function LoginForm() {
   const router = useRouter();
