@@ -12,6 +12,7 @@ import {
   LogIn,
   LogOut,
   Tag,
+  RefreshCw,
 } from "lucide-react";
 
 export default function MePage() {
@@ -22,6 +23,7 @@ export default function MePage() {
   const [readCount, setReadCount] = useState(0);
   const [subCount, setSubCount] = useState(0);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -58,6 +60,42 @@ export default function MePage() {
 
   const displayName = user?.nickname || user?.username || "RSS新闻用户";
   const initial = displayName.charAt(0).toUpperCase();
+
+  const handleClearCache = async () => {
+    if (isRefreshing) return;
+    
+    setIsRefreshing(true);
+    
+    try {
+      // 1. 清除 Service Worker 缓存
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+      
+      // 2. 注销 Service Worker
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(reg => reg.unregister()));
+      }
+      
+      // 3. 清除 localStorage 中的应用缓存（保留用户登录状态）
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('serwist') || key?.includes('cache')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      // 4. 强制刷新页面
+      window.location.reload();
+    } catch (error) {
+      console.error('清除缓存失败:', error);
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen pb-14">
@@ -155,6 +193,15 @@ export default function MePage() {
           <span className="flex-1 text-[15px]">设置</span>
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </Link>
+        <button
+          onClick={handleClearCache}
+          disabled={isRefreshing}
+          className="flex items-center w-full px-4 py-3.5 active:bg-gray-50 border-b border-gray-50 disabled:opacity-50"
+        >
+          <RefreshCw className={`w-5 h-5 text-green-500 mr-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <span className="flex-1 text-[15px] text-left">{isRefreshing ? '刷新中...' : '刷新版本/清除缓存'}</span>
+          <span className="text-xs text-gray-400 mr-1">修复显示问题</span>
+        </button>
       </div>
 
       <div className="bg-white mt-2">
