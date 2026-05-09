@@ -69,8 +69,11 @@ function HomeContent() {
       <header className="sticky top-0 z-30 bg-white safe-top">
         <div className="flex items-center h-[52px] px-4">
           <h1 className="text-lg font-bold text-gray-900 flex-shrink-0">RSS新闻</h1>
-          <div className="flex-1 ml-3">
-            <SearchBar placeholder="搜索新闻..." />
+          <div className="flex-1 ml-3 flex items-center gap-2">
+            <div className="flex-1">
+              <SearchBar placeholder="搜索新闻..." />
+            </div>
+            <LanguageFilter />
           </div>
         </div>
       </header>
@@ -79,8 +82,6 @@ function HomeContent() {
         active={activeTab}
         onChange={setActiveTab}
       />
-      {/* 语言筛选组件 */}
-      <LanguageFilter />
       <div className="flex-1 pb-14">
         <ArticleList
           articles={articles}
