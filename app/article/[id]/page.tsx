@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, ExternalLink, Heart, Share2, ChevronLeft, ChevronRight, Home, Type } from "lucide-react";
+import { ArrowLeft, ExternalLink, Heart, Share2, ChevronLeft, ChevronRight, Home } from "lucide-react";
 import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 import { useArticleDetail } from "@/hooks/useArticleDetail";
@@ -11,6 +11,8 @@ import SafeHTML from "@/components/SafeHTML";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import FloatingAISummary from "@/components/FloatingAISummary";
+import BilingualToggle from "@/components/BilingualToggle";
+import TranslatedText from "@/components/TranslatedText";
 import { api } from "@/lib/api";
 import { useEffect, useState, useCallback } from "react";
 
@@ -25,6 +27,11 @@ export default function ArticleDetailPage() {
   const [aiData, setAiData] = useState<{ ai_summary?: string; ai_key_points?: string[]; ai_processed_at?: string }>({});
   const [aiLoading, setAiLoading] = useState(false);
   const [bilingualOn, setBilingualOn] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [translatedData, setTranslatedData] = useState<{
+    translated_title?: string;
+    translated_summary?: string;
+  } | null>(null);
   const [showToast, setShowToast] = useState("");
 
   const loadAIData = useCallback(async () => {
@@ -84,12 +91,30 @@ export default function ArticleDetailPage() {
     setTimeout(() => setShowToast(""), 2000);
   }, []);
 
-  const handleBilingualToggle = () => {
-    if (!bilingualOn) {
-      setBilingualOn(true);
-      showToastMessage("双语阅读功能即将上线");
-      // 延迟恢复开关状态
-      setTimeout(() => setBilingualOn(false), 2000);
+  const handleBilingualToggle = async (enabled: boolean) => {
+    setBilingualOn(enabled);
+    
+    if (enabled && !translatedData && article?.id) {
+      // 开启双语且未翻译，实时翻译
+      setTranslating(true);
+      try {
+        const response = await api.post<{ success: boolean; data: Record<string, unknown> }>(
+          `/ai/translate/${article.id}?target_lang=en`
+        );
+        
+        if (response.success && response.data) {
+          setTranslatedData({
+            translated_title: response.data.translated_title as string,
+            translated_summary: response.data.translated_summary as string
+          });
+        }
+      } catch (error) {
+        console.error("翻译失败:", error);
+        setBilingualOn(false);
+        showToastMessage("翻译失败，请稍后重试");
+      } finally {
+        setTranslating(false);
+      }
     }
   };
 
@@ -151,16 +176,15 @@ export default function ArticleDetailPage() {
           </button>
           <span className="text-sm text-gray-600 flex-1 truncate">{a.source}</span>
           
-          {/* 双语阅读开关（UI占位） */}
-          <button
-            onClick={handleBilingualToggle}
-            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
-              bilingualOn ? 'bg-blue-50 text-blue-500' : 'text-gray-400 hover:text-gray-600'
-            }`}
-            title="双语阅读"
-          >
-            <Type className="w-4 h-4" />
-          </button>
+          {/* 双语阅读开关 */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-xs text-gray-500">双语</span>
+            <BilingualToggle
+              enabled={bilingualOn}
+              onChange={handleBilingualToggle}
+              loading={translating}
+            />
+          </div>
           
           {/* 查看原文 */}
           <a
@@ -177,6 +201,16 @@ export default function ArticleDetailPage() {
         {/* 文章内容 */}
         <article className="p-4 pb-24">
           <h1 className="text-xl font-bold text-gray-900 leading-relaxed mb-3">{a.title}</h1>
+          
+          {/* 双语标题 */}
+          {bilingualOn && translatedData?.translated_title && (
+            <TranslatedText
+              originalText={a.title}
+              translatedText={translatedData.translated_title}
+              originalLang={a.language || 'zh'}
+              translatedLang="en"
+            />
+          )}
           <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">
             <span>{a.source}</span>
             {a.author && <span>{a.author}</span>}
@@ -184,6 +218,16 @@ export default function ArticleDetailPage() {
             {a.reading_time && <span>阅读{a.reading_time}分钟</span>}
           </div>
           {a.image_url && (<ImageWithFallback src={a.image_url} alt={a.title} width={600} height={360} className="w-full rounded-lg mb-4" />)}
+          
+          {/* 双语摘要 */}
+          {bilingualOn && translatedData?.translated_summary && a.summary && (
+            <TranslatedText
+              originalText={a.summary}
+              translatedText={translatedData.translated_summary}
+              originalLang={a.language || 'zh'}
+              translatedLang="en"
+            />
+          )}
           {hasHTML && a.raw_content ? (<SafeHTML html={a.raw_content} />)
           : content ? (<div className="text-[15px] leading-relaxed text-gray-800 whitespace-pre-wrap">{content}</div>)
           : (<div className="text-center text-gray-400 py-10"><p>暂无正文内容</p><p className="text-sm mt-2">全文可能需要到原文查看</p></div>)}
