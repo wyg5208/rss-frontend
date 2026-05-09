@@ -208,10 +208,8 @@ export default function ArticleDetailPage() {
           {/* 双语标题 */}
           {bilingualOn && translatedData?.translated_title && (
             <TranslatedText
-              originalText={a.title}
               translatedText={translatedData.translated_title}
-              originalLang={a.language || 'zh'}
-              translatedLang="en"
+              translatedLang={article.language === 'en' ? 'zh' : 'en'}
             />
           )}
           <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">
@@ -225,10 +223,8 @@ export default function ArticleDetailPage() {
           {/* 双语摘要 */}
           {bilingualOn && translatedData?.translated_summary && a.summary && (
             <TranslatedText
-              originalText={a.summary}
               translatedText={translatedData.translated_summary}
-              originalLang={a.language || 'zh'}
-              translatedLang="en"
+              translatedLang={article.language === 'en' ? 'zh' : 'en'}
             />
           )}
           {hasHTML && a.raw_content ? (<SafeHTML html={a.raw_content} />)
