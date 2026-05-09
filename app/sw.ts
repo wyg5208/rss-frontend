@@ -25,6 +25,7 @@ self.addEventListener("activate", (event: any) => {
   );
   // 立即接管所有页面
   (self as unknown as { clients: { claim: () => Promise<void> } }).clients.claim();
+  console.log('[SW] Service Worker v2.1 已激活 - 修复 API 路由');
 });
 
 const serwist = new Serwist({
