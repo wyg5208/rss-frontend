@@ -15,7 +15,7 @@ export default function SubscribePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>("tags");
-  const { data: tags } = useTags(300); // 提升至300个标签
+  const { data: tags } = useTags(200); // 后端限制最大200
   const { favorites, readHistory } = useArticleStore();
   const { selectedTags, toggleTag, clearAllTags } = useTagFilterStore();
   
