@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, Languages, ExternalLink, ChevronUp, ChevronDown, Heart, EyeOff, X } from "lucide-react";
+import { Sparkles, Languages, ExternalLink, ChevronUp, ChevronDown, Heart, EyeOff } from "lucide-react";
 
 interface FloatingToolbarProps {
   articleId: number;
@@ -55,7 +55,6 @@ export default function FloatingToolbar({
   const [position, setPosition] = useState<'left' | 'right'>('left');
   const [verticalPosition, setVerticalPosition] = useState(50); // 垂直位置百分比 (0-100)
   const [isDragging, setIsDragging] = useState(false);
-  const [aiModalOpen, setAiModalOpen] = useState(false);
   const dragStartX = useRef(0);
   const dragStartY = useRef(0);
 
@@ -165,20 +164,19 @@ export default function FloatingToolbar({
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
       >
-        {/* 1. AI摘要 */}
+        {/* 1. AI摘要 - 点击触发生成（显示已改为内联） */}
         <button
           onClick={() => {
-            if (hasAIContent) {
-              setAiModalOpen(true);
-            } else {
+            if (!hasAIContent) {
               onAIGenerate();
             }
+            // 如果已有内容，无需操作，内联显示会自动展示
           }}
           disabled={aiLoading}
           className="w-9 h-9 flex items-center justify-center rounded-lg 
             hover:bg-white/80 active:bg-white transition-colors
             disabled:opacity-50"
-          title={hasAIContent ? "查看AI摘要" : "生成AI摘要"}
+          title={hasAIContent ? "AI摘要已显示" : "生成AI摘要"}
         >
           {aiLoading ? (
             <span className="animate-spin text-amber-500 text-sm">⏳</span>
@@ -253,67 +251,6 @@ export default function FloatingToolbar({
           <EyeOff className={`w-4 h-4 ${isBlocked ? 'text-gray-700' : 'text-gray-400'}`} />
         </button>
       </div>
-
-      {/* AI摘要弹窗 */}
-      {aiModalOpen && hasAIContent && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center"
-          onClick={() => setAiModalOpen(false)}
-        >
-          <div
-            className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[80vh] flex flex-col shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 弹窗标题栏 */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <span className="font-semibold text-amber-800">AI 摘要</span>
-              </div>
-              <button
-                onClick={() => setAiModalOpen(false)}
-                className="p-1 text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* 弹窗内容 */}
-            <div className="overflow-y-auto p-4">
-              {/* 摘要内容 */}
-              {aiSummary && (
-                <div className="bg-amber-50 rounded-lg p-3 mb-3">
-                  <p className="text-sm text-gray-700 leading-relaxed">{aiSummary}</p>
-                </div>
-              )}
-
-              {/* 核心要点 */}
-              {aiKeyPoints && aiKeyPoints.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">核心要点</h4>
-                  <ul className="space-y-1.5">
-                    {aiKeyPoints.map((point, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-100 text-amber-600 text-xs flex items-center justify-center font-medium mt-0.5">
-                          {index + 1}
-                        </span>
-                        <span>{point}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* 生成时间 */}
-              {aiProcessedAt && (
-                <p className="text-xs text-gray-400 mt-4">
-                  生成于 {new Date(aiProcessedAt).toLocaleString("zh-CN")}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

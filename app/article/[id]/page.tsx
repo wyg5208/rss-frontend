@@ -13,6 +13,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import FloatingToolbar from "@/components/FloatingToolbar";
 import BilingualToggle from "@/components/BilingualToggle";
 import TranslatedText from "@/components/TranslatedText";
+import AISummaryCard from "@/components/AISummaryCard";
 import { api } from "@/lib/api";
 import { useEffect, useState, useCallback } from "react";
 
@@ -261,6 +262,7 @@ export default function ArticleDetailPage() {
           {bilingualOn && translatedData?.translated_title && (
             <TranslatedText
               translatedText={translatedData.translated_title}
+              type="title"
             />
           )}
           <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">
@@ -271,12 +273,29 @@ export default function ArticleDetailPage() {
           </div>
           {a.image_url && (<ImageWithFallback src={a.image_url} alt={a.title} width={600} height={360} className="w-full rounded-lg mb-4" />)}
           
-          {/* 双语摘要 */}
-          {bilingualOn && translatedData?.translated_summary && a.summary && (
+          {/* 原文摘要（如果有） */}
+          {a.summary && !bilingualOn && (
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg border-l-4 border-gray-300">
+              <p className="text-sm text-gray-600 leading-relaxed">{a.summary}</p>
+            </div>
+          )}
+          
+          {/* 双语摘要（替换原文摘要） */}
+          {bilingualOn && translatedData?.translated_summary && (
             <TranslatedText
               translatedText={translatedData.translated_summary}
+              type="summary"
             />
           )}
+          
+          {/* AI摘要 - 内联显示（与双语翻译对齐） */}
+          {/* 放在摘要之后、正文之前，避免与翻译内容冲突 */}
+          <AISummaryCard
+            aiSummary={aiData.ai_summary}
+            aiKeyPoints={aiData.ai_key_points}
+            aiProcessedAt={aiData.ai_processed_at}
+          />
+          
           {hasHTML && a.raw_content ? (<SafeHTML html={a.raw_content} />)
           : content ? (<div className="text-[15px] leading-relaxed text-gray-800 whitespace-pre-wrap">{content}</div>)
           : (<div className="text-center text-gray-400 py-10"><p>暂无正文内容</p><p className="text-sm mt-2">全文可能需要到原文查看</p></div>)}
