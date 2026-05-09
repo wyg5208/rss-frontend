@@ -9,13 +9,72 @@ import ArticleCard from "@/components/ArticleCard";
 import { Heart, Clock, Tag, X, ArrowUpDown, Layers } from "lucide-react";
 import clsx from "clsx";
 
+// 前端分类映射：覆盖后端 tag.category，将标签重新归类
+const TAG_CATEGORY_MAP: Record<string, string> = {
+  // === 科技/编程 ===
+  AI: "科技", "artificial-intelligence": "科技", AGI: "科技", "ai-agent": "科技",
+  llm: "科技", chatgpt: "科技", openai: "科技", claude: "科技", gemini: "科技",
+  mcp: "科技", rag: "科技", machinelearning: "科技", "machine-learning": "科技",
+  technology: "科技", tech: "科技", programming: "科技", python: "科技",
+  javascript: "科技", typescript: "科技", react: "科技", java: "科技", rust: "科技",
+  go: "科技", html: "科技", api: "科技", "software-development": "科技",
+  "software-engineering": "科技", devops: "科技", docker: "科技", containers: "科技",
+  linux: "科技", git: "科技", github: "科技", coding: "科技", code: "科技",
+  database: "科技", cloud: "科技", aws: "科技", cli: "科技", webdev: "科技",
+  architecture: "科技", agents: "科技", testing: "科技", qa: "科技",
+  opensource: "科技", software: "科技",
+  芯片: "科技", 半导体: "科技", 算力: "科技", 大模型: "科技", 机器人: "科技",
+  cybersecurity: "科技", Security: "科技", privacy: "科技",
+  CES: "科技", "钛媒体直击CES 2026": "科技", "2025 EDGE AWARDS 创新评选": "科技",
+  "2025 T-EDGE全球对话": "科技", "TechCrunch Dissrupt 2026": "科技",
+  "科技新闻": "科技", huawei: "科技", 华为: "科技", ios: "科技",
+  microsoft: "科技", apple: "科技", "Mac": "科技",
+
+  // === 商业/金融 ===
+  Business: "商业", finance: "商业", money: "商业", 投资: "商业", 融资: "商业",
+  IPO: "商业", 上市: "商业", cryptocurrency: "商业", blockchain: "商业",
+  Venture: "商业", startup: "商业", Startups: "商业", 零售: "商业",
+  消费: "商业", 银行: "商业", 港股: "商业", 营销: "商业", 广告: "商业",
+  sales: "商业", marketing: "商业", growth: "商业",
+  oil: "商业", cost: "商业",
+
+  // === 地区/国家 ===
+  Singapore: "地区", singapore: "地区", "Kuala Lumpur": "地区", 马来西亚: "地区",
+  india: "地区", 印度: "地区", china: "地区", japan: "地区", 欧洲: "地区",
+  Europe: "地区", eu: "地区", 美国: "地区", "Donald Trump": "地区",
+  上海: "地区",
+  "Malaysia's trade performance 2025": "地区",
+
+  // === 社会/文化 ===
+  government: "社会", politics: "社会", Policy: "社会", world: "社会",
+  war: "社会", culture: "社会", Social: "社会", history: "社会",
+  philosophy: "社会", education: "社会", students: "社会", career: "社会",
+  leadership: "社会", management: "社会", community: "社会",
+  health: "社会", life: "社会", work: "社会", "self-improvement": "社会",
+  interview: "社会",
+
+  // === 生活方式 ===
+  Gaming: "生活", Entertainment: "生活", Gadgets: "生活", Gear: "生活",
+  旅游: "生活", 餐饮: "生活", 游戏: "生活", Deals: "生活",
+  productivity: "生活", office: "生活", mobile: "生活",
+
+  // === 科学/学术 ===
+  Science: "科学", space: "科学", data: "科学", "data-science": "科学",
+  learning: "科学", energy: "科学", future: "科学",
+};
+
+// 获取标签的前端分类
+function getTagCategory(tag: { name: string; category?: string }): string {
+  return TAG_CATEGORY_MAP[tag.name] || TAG_CATEGORY_MAP[tag.name.toLowerCase()] || "其他";
+}
+
 type Tab = "favorites" | "history" | "tags";
 
 export default function SubscribePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>("tags");
-  const { data: tags } = useTags(200); // 后端限制最大200
+  const { data: tags } = useTags(500); // 后端限制最大500
   const { favorites, readHistory } = useArticleStore();
   const { selectedTags, toggleTag, clearAllTags } = useTagFilterStore();
   
@@ -56,13 +115,13 @@ export default function SubscribePage() {
     return tags;
   }, [tags, sortBy]);
   
-  // 按分类分组
+  // 按分类分组（使用前端分类映射）
   const groupedTags = useMemo(() => {
     if (sortBy !== 'category' || !sortedTags.length) return null;
     
     const groups: Record<string, typeof sortedTags> = {};
     sortedTags.forEach(tag => {
-      const category = tag.category || '未分类';
+      const category = getTagCategory(tag);
       if (!groups[category]) groups[category] = [];
       groups[category].push(tag);
     });
