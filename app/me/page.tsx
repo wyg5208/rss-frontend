@@ -139,7 +139,7 @@ export default function MePage() {
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </Link>
         <Link
-          href="/me/tags"
+          href="/subscribe?tab=tags"
           className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
         >
           <Tag className="w-5 h-5 text-purple-400 mr-3" />
