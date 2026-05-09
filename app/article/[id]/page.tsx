@@ -209,7 +209,6 @@ export default function ArticleDetailPage() {
           {bilingualOn && translatedData?.translated_title && (
             <TranslatedText
               translatedText={translatedData.translated_title}
-              translatedLang={article.language === 'en' ? 'zh' : 'en'}
             />
           )}
           <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">
@@ -224,7 +223,6 @@ export default function ArticleDetailPage() {
           {bilingualOn && translatedData?.translated_summary && a.summary && (
             <TranslatedText
               translatedText={translatedData.translated_summary}
-              translatedLang={article.language === 'en' ? 'zh' : 'en'}
             />
           )}
           {hasHTML && a.raw_content ? (<SafeHTML html={a.raw_content} />)
