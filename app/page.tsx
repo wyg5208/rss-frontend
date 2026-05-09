@@ -17,6 +17,7 @@ const CATEGORY_TABS = [
   { label: "政治", value: "政治" },
   { label: "全球", value: "全球" },
   { label: "生活", value: "生活" },
+  { label: "经济学人", value: "经济学人" },
 ];
 
 function HomeContent() {
