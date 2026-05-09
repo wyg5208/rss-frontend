@@ -10,22 +10,30 @@ declare global {
 
 declare const self: WorkerGlobalScope & typeof globalThis;
 
-// 激活时清理所有旧缓存
+// 激活时清理旧版本缓存，保留当前版本 precache
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 self.addEventListener("activate", (event: any) => {
   event.waitUntil(
     caches.keys().then((cacheNames) =>
       Promise.all(
-        cacheNames.map((cacheName) => {
-          console.log(`[SW] 清理旧缓存: ${cacheName}`);
-          return caches.delete(cacheName);
-        })
+        cacheNames
+          .filter((cacheName) => {
+            // 只清理旧版本的 precache 和运行时缓存
+            return (
+              cacheName.includes("serwist-precache-v1") ||
+              cacheName.includes("serwist-runtime")
+            );
+          })
+          .map((cacheName) => {
+            console.log(`[SW] 清理旧缓存: ${cacheName}`);
+            return caches.delete(cacheName);
+          })
       )
     )
   );
   // 立即接管所有页面
   (self as unknown as { clients: { claim: () => Promise<void> } }).clients.claim();
-  console.log('[SW] Service Worker v2.1 已激活 - 修复 API 路由');
+  console.log('[SW] Service Worker v2.2 已激活 - 修复页面导航问题');
 });
 
 const serwist = new Serwist({
