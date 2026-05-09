@@ -11,9 +11,10 @@ interface Props {
   hasMore: boolean;
   onLoadMore: () => void;
   emptyText?: string;
+  onArticleNavigate?: (articleId: number) => void;
 }
 
-export default function ArticleList({ articles, loading, hasMore, onLoadMore, emptyText = "暂无文章" }: Props) {
+export default function ArticleList({ articles, loading, hasMore, onLoadMore, emptyText = "暂无文章", onArticleNavigate }: Props) {
   const observer = useRef<IntersectionObserver | null>(null);
 
   const lastElementRef = useCallback(
@@ -46,7 +47,7 @@ export default function ArticleList({ articles, loading, hasMore, onLoadMore, em
           const isLast = idx === articles.length - 1;
           return (
             <div key={article.id} ref={isLast ? lastElementRef : null}>
-              <ArticleCard article={article} />
+              <ArticleCard article={article} onBeforeNavigate={onArticleNavigate} />
             </div>
           );
         })}

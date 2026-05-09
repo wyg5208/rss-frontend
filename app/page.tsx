@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -8,6 +8,7 @@ import ArticleList from "@/components/ArticleList";
 import LanguageFilter from "@/components/LanguageFilter";
 import { useArticles } from "@/hooks/useArticles";
 import { useTagFilterStore } from "@/store/useTagFilterStore";
+import { useArticleNavStore } from "@/store/useArticleNavStore";
 
 // 固定中文分类Tab，对应后端 tag_category 筛选
 const CATEGORY_TABS = [
@@ -59,6 +60,11 @@ function HomeContent() {
   const { data: pages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, isLoading } = useArticles(filters);
 
   const articles = useMemo(() => pages?.pages.flat() || [], [pages]);
+  const articleIds = useMemo(() => articles.map(a => a.id), [articles]);
+
+  const handleArticleNavigate = useCallback((articleId: number) => {
+    useArticleNavStore.getState().setListContext(articleIds);
+  }, [articleIds]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -85,6 +91,7 @@ function HomeContent() {
           hasMore={!!hasNextPage}
           onLoadMore={() => fetchNextPage()}
           emptyText={selectedTags.length > 0 ? "暂无符合筛选条件的文章" : "暂无文章"}
+          onArticleNavigate={handleArticleNavigate}
         />
       </div>
     </div>

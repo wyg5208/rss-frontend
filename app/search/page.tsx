@@ -1,11 +1,12 @@
 ﻿"use client";
 
-import { useState, useCallback, Suspense } from "react";
+import { useState, useCallback, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
 import ArticleList from "@/components/ArticleList";
 import { useArticles } from "@/hooks/useArticles";
 import { useSearchStore } from "@/store/useSearchStore";
+import { useArticleNavStore } from "@/store/useArticleNavStore";
 import { X, Clock } from "lucide-react";
 
 function SearchContent() {
@@ -29,6 +30,11 @@ function SearchContent() {
 
   const articles = pages?.pages.flat() || [];
   const showResults = keyword.length > 0;
+  const articleIds = useMemo(() => articles.map(a => a.id), [articles]);
+
+  const handleArticleNavigate = useCallback((articleId: number) => {
+    useArticleNavStore.getState().setListContext(articleIds);
+  }, [articleIds]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -47,6 +53,7 @@ function SearchContent() {
             hasMore={!!hasNextPage}
             onLoadMore={() => fetchNextPage()}
             emptyText="未找到相关文章"
+            onArticleNavigate={handleArticleNavigate}
           />
         </div>
       ) : (
