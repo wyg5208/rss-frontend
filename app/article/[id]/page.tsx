@@ -26,6 +26,7 @@ export default function ArticleDetailPage() {
   const { getPrevId, getNextId, hasPrev, hasNext } = useArticleNavStore();
   const [aiData, setAiData] = useState<{ ai_summary?: string; ai_key_points?: string[]; ai_processed_at?: string }>({});
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiAutoOpen, setAiAutoOpen] = useState(false);
   const [bilingualOn, setBilingualOn] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [translatedData, setTranslatedData] = useState<{
@@ -33,6 +34,12 @@ export default function ArticleDetailPage() {
     translated_summary?: string;
   } | null>(null);
   const [showToast, setShowToast] = useState("");
+
+  // Toast提示
+  const showToastMessage = useCallback((msg: string) => {
+    setShowToast(msg);
+    setTimeout(() => setShowToast(""), 2000);
+  }, []);
 
   const loadAIData = useCallback(async () => {
     if (!article?.id) return;
@@ -64,6 +71,12 @@ export default function ArticleDetailPage() {
       ai_key_points: data.ai_key_points,
       ai_processed_at: new Date().toISOString()
     });
+    // 生成完成后自动打开摘要弹窗
+    setAiAutoOpen(true);
+    setTimeout(() => setAiAutoOpen(false), 1000); // 1秒后重置，避免下次打开时误触发
+    
+    // 同时刷新AI数据（从后端获取最新保存的数据）
+    loadAIData();
   }
 
   // 生成AI摘要（供悬浮按钮调用）
@@ -73,23 +86,34 @@ export default function ArticleDetailPage() {
     try {
       const response = await api.post<{ success: boolean; message: string; data: Record<string, unknown> }>(`/ai/process/${article.id}`);
       if (response.success && response.data) {
-        handleAIPprocessed({
-          ai_summary: (response.data.ai_summary as string) || "",
-          ai_key_points: (response.data.key_points_success as boolean) ? (response.data.key_points as string[]) : []
-        });
+        // 从返回的data中提取AI摘要和要点
+        const apiData = response.data;
+        const ai_summary = (apiData.ai_summary as string) || "";
+        const key_points = (apiData.key_points as string[]) || [];
+        const summary_success = apiData.summary_success as boolean;
+        
+        // 只有当后端成功返回数据时才更新状态
+        if (ai_summary || (key_points && key_points.length > 0)) {
+          handleAIPprocessed({
+            ai_summary: ai_summary,
+            ai_key_points: key_points || []
+          });
+          showToastMessage("AI摘要生成成功");
+        } else if (summary_success === false) {
+          // 如果后端标记为失败，显示错误
+          const errors = (apiData.errors as string[]) || [];
+          showToastMessage(errors[0] || "生成失败");
+        }
+      } else {
+        showToastMessage(response.message || "生成失败");
       }
-    } catch {
-      // 生成失败
+    } catch (err) {
+      console.error("AI生成失败:", err);
+      showToastMessage("生成失败，请稍后重试");
     } finally {
       setAiLoading(false);
     }
-  }, [article?.id]);
-
-  // Toast提示
-  const showToastMessage = useCallback((msg: string) => {
-    setShowToast(msg);
-    setTimeout(() => setShowToast(""), 2000);
-  }, []);
+  }, [article?.id, showToastMessage]);
 
   const handleBilingualToggle = async (enabled: boolean) => {
     setBilingualOn(enabled);
@@ -239,6 +263,7 @@ export default function ArticleDetailPage() {
           onGenerate={handleGenerateAI}
           isLoading={aiLoading}
           hasContent={hasAIContent}
+          autoOpen={aiAutoOpen}
         />
 
         {/* 底部操作栏: 上篇 | 分享 | 返回 | 收藏 | 下篇 */}
