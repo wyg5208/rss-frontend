@@ -10,7 +10,7 @@ import { useArticleNavStore } from "@/store/useArticleNavStore";
 import SafeHTML from "@/components/SafeHTML";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import FloatingAISummary from "@/components/FloatingAISummary";
+import FloatingToolbar from "@/components/FloatingToolbar";
 import BilingualToggle from "@/components/BilingualToggle";
 import TranslatedText from "@/components/TranslatedText";
 import { api } from "@/lib/api";
@@ -26,7 +26,6 @@ export default function ArticleDetailPage() {
   const { getPrevId, getNextId, hasPrev, hasNext } = useArticleNavStore();
   const [aiData, setAiData] = useState<{ ai_summary?: string; ai_key_points?: string[]; ai_processed_at?: string }>({});
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiAutoOpen, setAiAutoOpen] = useState(false);
   const [bilingualOn, setBilingualOn] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [translatedData, setTranslatedData] = useState<{
@@ -34,12 +33,7 @@ export default function ArticleDetailPage() {
     translated_summary?: string;
   } | null>(null);
   const [showToast, setShowToast] = useState("");
-
-  // Toast提示
-  const showToastMessage = useCallback((msg: string) => {
-    setShowToast(msg);
-    setTimeout(() => setShowToast(""), 2000);
-  }, []);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   const loadAIData = useCallback(async () => {
     if (!article?.id) return;
@@ -60,16 +54,7 @@ export default function ArticleDetailPage() {
   useEffect(() => {
     if (article) {
       addToHistory(article);
-      
-      // Phase 3: 使用 sendBeacon 异步浏览计数（不阻塞页面加载）
-      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-        const url = `${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000/api'}/rss/articles/${id}/view`;
-        navigator.sendBeacon(url);
-      } else {
-        // 降级方案：使用普通POST
-        api.post(`/rss/articles/${id}/view`).catch(() => {});
-      }
-      
+      api.post(`/rss/articles/${id}/view`).catch(() => {});
       loadAIData();
     }
   }, [article, id, addToHistory, loadAIData]);
@@ -80,53 +65,37 @@ export default function ArticleDetailPage() {
       ai_key_points: data.ai_key_points,
       ai_processed_at: new Date().toISOString()
     });
-    // 生成完成后自动打开摘要弹窗
-    setAiAutoOpen(true);
-    setTimeout(() => setAiAutoOpen(false), 1000); // 1秒后重置，避免下次打开时误触发
-    
-    // 同时刷新AI数据（从后端获取最新保存的数据）
-    loadAIData();
   }
 
-  // 生成AI摘要（供悬浮按钮调用）
+  // 生成 AI 摘要（供悬浮按钮调用）
   const handleGenerateAI = useCallback(async () => {
     if (!article?.id) return;
     setAiLoading(true);
     try {
       const response = await api.post<{ success: boolean; message: string; data: Record<string, unknown> }>(`/ai/process/${article.id}`);
       if (response.success && response.data) {
-        // 从返回的data中提取AI摘要和要点
-        const apiData = response.data;
-        const ai_summary = (apiData.ai_summary as string) || "";
-        const key_points = (apiData.key_points as string[]) || [];
-        const summary_success = apiData.summary_success as boolean;
-        
-        // 只有当后端成功返回数据时才更新状态
-        if (ai_summary || (key_points && key_points.length > 0)) {
-          handleAIPprocessed({
-            ai_summary: ai_summary,
-            ai_key_points: key_points || []
-          });
-          showToastMessage("AI摘要生成成功");
-        } else if (summary_success === false) {
-          // 如果后端标记为失败，显示错误
-          const errors = (apiData.errors as string[]) || [];
-          showToastMessage(errors[0] || "生成失败");
-        }
-      } else {
-        showToastMessage(response.message || "生成失败");
+        handleAIPprocessed({
+          ai_summary: (response.data.ai_summary as string) || "",
+          ai_key_points: (response.data.key_points_success as boolean) ? (response.data.key_points as string[]) : []
+        });
       }
-    } catch (err) {
-      console.error("AI生成失败:", err);
-      showToastMessage("生成失败，请稍后重试");
+    } catch {
+      // 生成失败
     } finally {
       setAiLoading(false);
     }
-  }, [article?.id, showToastMessage]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [article?.id]);
+
+  // Toast提示
+  const showToastMessage = useCallback((msg: string) => {
+    setShowToast(msg);
+    setTimeout(() => setShowToast(""), 2000);
+  }, []);
 
   const handleBilingualToggle = async (enabled: boolean) => {
     setBilingualOn(enabled);
-      
+    
     if (enabled && article?.id) {
       // 开启双语，如果还没有翻译数据则进行翻译
       if (!translatedData) {
@@ -134,18 +103,18 @@ export default function ArticleDetailPage() {
         try {
           // 根据文章语言动态设置目标语言：中文→英文，英文→中文
           const targetLang = article.language === 'en' ? 'zh' : 'en';
-            
+          
           // 翻译可能需要较长时间，设置 60 秒超时
           const response = await api.post<{ success: boolean; data: Record<string, unknown>; message?: string }>(
             `/ai/translate/${article.id}?target_lang=${targetLang}`,
             undefined,
             { timeout: 60000 } // 60 秒超时
           );
-            
+          
           if (response.success && response.data) {
             const title = response.data.translated_title as string | undefined;
             const summary = response.data.translated_summary as string | undefined;
-              
+            
             // 只要有任意一个翻译结果就认为成功
             if (title || summary) {
               setTranslatedData({
@@ -164,12 +133,12 @@ export default function ArticleDetailPage() {
             setBilingualOn(false);
             showToastMessage(response.message || "翻译失败，请稍后重试");
           }
-        } catch (error: any) {
+        } catch (error) {
           console.error("翻译请求异常:", error);
           setBilingualOn(false);
-            
+          
           // 区分超时错误和其他错误
-          if (error.name === 'AbortError') {
+          if (error instanceof Error && error.name === 'AbortError') {
             showToastMessage("翻译超时，请稍后重试");
           } else {
             showToastMessage("翻译失败，请稍后重试");
@@ -184,6 +153,30 @@ export default function ArticleDetailPage() {
       // 这样可以避免重复翻译
     }
   };
+
+  // 切换黑名单状态
+  const handleBlockToggle = useCallback(async () => {
+    if (!article?.id) return;
+    try {
+      const response = await api.post<{ success: boolean; is_blocked: boolean; message?: string }>(
+        `/user/blocks/${article.id}`
+      );
+      if (response.success) {
+        setIsBlocked(response.is_blocked);
+        if (response.is_blocked) {
+          showToastMessage("已加入不看列表");
+          // 3秒后自动返回列表页
+          setTimeout(() => router.push("/"), 3000);
+        } else {
+          showToastMessage("已取消不看");
+        }
+      } else {
+        showToastMessage(response.message || "操作失败");
+      }
+    } catch {
+      showToastMessage("操作失败，请稍后重试");
+    }
+  }, [article?.id, router, showToastMessage]);
 
   if (isLoading) return (
     <div className="p-4 animate-pulse">
@@ -294,31 +287,29 @@ export default function ArticleDetailPage() {
           : (<div className="text-center text-gray-400 py-10"><p>暂无正文内容</p><p className="text-sm mt-2">全文可能需要到原文查看</p></div>)}
         </article>
 
-        {/* AI摘要悬浮按钮 */}
-        <FloatingAISummary
+        {/* 浮动工具栏 - 包含7个功能按钮 */}
+        <FloatingToolbar
           articleId={a.id}
+          articleUrl={a.url}
           aiSummary={aiData.ai_summary}
           aiKeyPoints={aiData.ai_key_points}
           aiProcessedAt={aiData.ai_processed_at}
-          onGenerate={handleGenerateAI}
-          isLoading={aiLoading}
-          hasContent={hasAIContent}
+          bilingualOn={bilingualOn}
+          isFavorite={fav}
+          isBlocked={isBlocked}
+          hasPrev={showPrev}
+          hasNext={showNext}
+          onAIGenerate={handleGenerateAI}
+          onBilingualToggle={handleBilingualToggle}
+          onPrev={() => prevId && router.push("/article/" + prevId)}
+          onNext={() => nextId && router.push("/article/" + nextId)}
+          onFavoriteToggle={() => toggleFavorite(a)}
+          onBlockToggle={handleBlockToggle}
+          aiLoading={aiLoading}
         />
 
-        {/* 底部操作栏: 上篇 | 分享 | 返回 | 收藏 | 下篇 */}
-        <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-gray-200 px-2 py-2 flex items-center justify-around z-40 safe-bottom">
-          {/* 上篇 */}
-          <button
-            onClick={() => prevId && router.push("/article/" + prevId)}
-            disabled={!showPrev}
-            className={`flex flex-col items-center gap-0.5 px-1 ${
-              showPrev ? "text-gray-600 active:text-blue-600" : "text-gray-300 cursor-not-allowed"
-            }`}
-          >
-            <ChevronLeft className="w-5 h-5" />
-            <span className="text-[10px]">上篇</span>
-          </button>
-
+        {/* 底部操作栏: 简化为仅分享和返回 */}
+        <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-around z-40 safe-bottom">
           {/* 分享 */}
           <button onClick={handleShare} className="flex flex-col items-center gap-0.5 px-1 text-gray-600 active:text-blue-600">
             <Share2 className="w-5 h-5" />
@@ -329,27 +320,6 @@ export default function ArticleDetailPage() {
           <button onClick={handleBack} className="flex flex-col items-center gap-0.5 px-1 text-gray-600 active:text-blue-600">
             <Home className="w-5 h-5" />
             <span className="text-[10px]">返回</span>
-          </button>
-
-          {/* 收藏 */}
-          <button
-            onClick={() => toggleFavorite(a)}
-            className={`flex flex-col items-center gap-0.5 px-1 ${fav ? "text-red-500" : "text-gray-600 active:text-red-500"}`}
-          >
-            <Heart className={`w-5 h-5 ${fav ? "fill-current" : ""}`} />
-            <span className="text-[10px]">{fav ? "已收藏" : "收藏"}</span>
-          </button>
-
-          {/* 下篇 */}
-          <button
-            onClick={() => nextId && router.push("/article/" + nextId)}
-            disabled={!showNext}
-            className={`flex flex-col items-center gap-0.5 px-1 ${
-              showNext ? "text-gray-600 active:text-blue-600" : "text-gray-300 cursor-not-allowed"
-            }`}
-          >
-            <ChevronRight className="w-5 h-5" />
-            <span className="text-[10px]">下篇</span>
           </button>
         </div>
       </div>
