@@ -19,7 +19,7 @@ function getToken(): string | null {
   }
 }
 
-async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+async function apiFetch<T>(path: string, options?: RequestInit & { timeout?: number }): Promise<T> {
   const isAbsolute = path.startsWith("http");
   // 生产环境使用相对路径 /api/v1/... 由 Vercel rewrite 转发
   // 开发环境使用 NEXT_PUBLIC_API_URL（如 http://localhost:8001）
@@ -38,27 +38,42 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, { ...options, headers });
-  if (!res.ok) {
-    let msg = "";
-    try {
-      msg = await res.text();
-    } catch {
-      msg = res.statusText;
+  // 创建 AbortController 用于超时控制
+  const controller = new AbortController();
+  const timeout = options?.timeout || 30000; // 默认 30 秒超时
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const res = await fetch(url, { 
+      ...options, 
+      headers,
+      signal: controller.signal 
+    });
+    
+    if (!res.ok) {
+      let msg = "";
+      try {
+        msg = await res.text();
+      } catch {
+        msg = res.statusText;
+      }
+      throw new ApiError(res.status, msg);
     }
-    throw new ApiError(res.status, msg);
+    return res.json();
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return res.json();
 }
 
 export const api = {
-  get: <T>(path: string) => apiFetch<T>(path),
-  post: <T>(path: string, body?: unknown) =>
+  get: <T>(path: string, options?: RequestInit & { timeout?: number }) => apiFetch<T>(path, options),
+  post: <T>(path: string, body?: unknown, options?: RequestInit & { timeout?: number }) =>
     apiFetch<T>(path, {
       method: "POST",
       body: body ? JSON.stringify(body) : undefined,
+      ...options,
     }),
-  delete: <T>(path: string) => apiFetch<T>(path, { method: "DELETE" }),
+  delete: <T>(path: string, options?: RequestInit & { timeout?: number }) => apiFetch<T>(path, { method: "DELETE", ...options }),
 };
 
 export function buildQuery(

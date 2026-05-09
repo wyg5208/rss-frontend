@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/zh-cn";
@@ -18,9 +20,28 @@ interface Props {
 
 export default function ArticleCard({ article, onBeforeNavigate }: Props) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const timeAgo = article.published_at ? dayjs(article.published_at).fromNow() : "";
   const source = article.source || "未知来源";
   const hasImage = !!article.image_url;
+  const [prefetched, setPrefetched] = useState(false);
+
+  // Phase 3: hover/touch 预取文章详情
+  useEffect(() => {
+    if (!prefetched) {
+      // 预加载文章详情到 React Query 缓存
+      queryClient.prefetchQuery({
+        queryKey: ["article", "detail", article.id],
+        queryFn: async () => {
+          const { api } = await import("@/lib/api");
+          const res = await api.get<unknown>(`/rss/articles/${article.id}?include_both=true`);
+          return (res as { data: unknown }).data;
+        },
+        staleTime: 5 * 60 * 1000,
+      });
+      setPrefetched(true);
+    }
+  }, [article.id, prefetched, queryClient]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (onBeforeNavigate) {

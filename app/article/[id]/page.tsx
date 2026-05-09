@@ -60,7 +60,16 @@ export default function ArticleDetailPage() {
   useEffect(() => {
     if (article) {
       addToHistory(article);
-      api.post(`/rss/articles/${id}/view`).catch(() => {});
+      
+      // Phase 3: 使用 sendBeacon 异步浏览计数（不阻塞页面加载）
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        const url = `${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000/api'}/rss/articles/${id}/view`;
+        navigator.sendBeacon(url);
+      } else {
+        // 降级方案：使用普通POST
+        api.post(`/rss/articles/${id}/view`).catch(() => {});
+      }
+      
       loadAIData();
     }
   }, [article, id, addToHistory, loadAIData]);
@@ -117,31 +126,62 @@ export default function ArticleDetailPage() {
 
   const handleBilingualToggle = async (enabled: boolean) => {
     setBilingualOn(enabled);
-    
-    if (enabled && !translatedData && article?.id) {
-      // 开启双语且未翻译，实时翻译
-      setTranslating(true);
-      try {
-        // 根据文章语言动态设置目标语言：中文→英文，英文→中文
-        const targetLang = article.language === 'en' ? 'zh' : 'en';
-        
-        const response = await api.post<{ success: boolean; data: Record<string, unknown> }>(
-          `/ai/translate/${article.id}?target_lang=${targetLang}`
-        );
-        
-        if (response.success && response.data) {
-          setTranslatedData({
-            translated_title: response.data.translated_title as string,
-            translated_summary: response.data.translated_summary as string
-          });
+      
+    if (enabled && article?.id) {
+      // 开启双语，如果还没有翻译数据则进行翻译
+      if (!translatedData) {
+        setTranslating(true);
+        try {
+          // 根据文章语言动态设置目标语言：中文→英文，英文→中文
+          const targetLang = article.language === 'en' ? 'zh' : 'en';
+            
+          // 翻译可能需要较长时间，设置 60 秒超时
+          const response = await api.post<{ success: boolean; data: Record<string, unknown>; message?: string }>(
+            `/ai/translate/${article.id}?target_lang=${targetLang}`,
+            undefined,
+            { timeout: 60000 } // 60 秒超时
+          );
+            
+          if (response.success && response.data) {
+            const title = response.data.translated_title as string | undefined;
+            const summary = response.data.translated_summary as string | undefined;
+              
+            // 只要有任意一个翻译结果就认为成功
+            if (title || summary) {
+              setTranslatedData({
+                translated_title: title,
+                translated_summary: summary
+              });
+            } else {
+              // 后端返回成功但没有翻译数据
+              console.warn("翻译成功但未返回翻译数据");
+              setBilingualOn(false);
+              showToastMessage("未获取到翻译内容");
+            }
+          } else {
+            // 后端返回失败
+            console.warn("翻译 API 返回失败:", response);
+            setBilingualOn(false);
+            showToastMessage(response.message || "翻译失败，请稍后重试");
+          }
+        } catch (error: any) {
+          console.error("翻译请求异常:", error);
+          setBilingualOn(false);
+            
+          // 区分超时错误和其他错误
+          if (error.name === 'AbortError') {
+            showToastMessage("翻译超时，请稍后重试");
+          } else {
+            showToastMessage("翻译失败，请稍后重试");
+          }
+        } finally {
+          setTranslating(false);
         }
-      } catch (error) {
-        console.error("翻译失败:", error);
-        setBilingualOn(false);
-        showToastMessage("翻译失败，请稍后重试");
-      } finally {
-        setTranslating(false);
       }
+      // 如果 translatedData 已存在，直接显示，无需重新翻译
+    } else if (!enabled) {
+      // 关闭双语时，不清除 translatedData，以便再次开启时可以直接显示
+      // 这样可以避免重复翻译
     }
   };
 
@@ -263,7 +303,6 @@ export default function ArticleDetailPage() {
           onGenerate={handleGenerateAI}
           isLoading={aiLoading}
           hasContent={hasAIContent}
-          autoOpen={aiAutoOpen}
         />
 
         {/* 底部操作栏: 上篇 | 分享 | 返回 | 收藏 | 下篇 */}
