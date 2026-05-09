@@ -59,25 +59,15 @@ export default function ArticleDetailPage() {
     }
   }, [article, id, addToHistory, loadAIData]);
 
-  function handleAIPprocessed(data: { ai_summary: string; ai_key_points: string[] }) {
-    setAiData({
-      ai_summary: data.ai_summary,
-      ai_key_points: data.ai_key_points,
-      ai_processed_at: new Date().toISOString()
-    });
-  }
-
   // 生成 AI 摘要（供悬浮按钮调用）
   const handleGenerateAI = useCallback(async () => {
     if (!article?.id) return;
     setAiLoading(true);
     try {
       const response = await api.post<{ success: boolean; message: string; data: Record<string, unknown> }>(`/ai/process/${article.id}`);
-      if (response.success && response.data) {
-        handleAIPprocessed({
-          ai_summary: (response.data.ai_summary as string) || "",
-          ai_key_points: (response.data.key_points_success as boolean) ? (response.data.key_points as string[]) : []
-        });
+      if (response.success) {
+        // 生成成功后，重新加载AI数据（因为process接口只返回状态，不返回内容）
+        await loadAIData();
       }
     } catch {
       // 生成失败
@@ -85,7 +75,7 @@ export default function ArticleDetailPage() {
       setAiLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [article?.id]);
+  }, [article?.id, loadAIData]);
 
   // Toast提示
   const showToastMessage = useCallback((msg: string) => {
