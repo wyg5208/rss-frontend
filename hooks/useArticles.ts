@@ -1,12 +1,13 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { api, buildQuery } from "@/lib/api";
 import type { Article } from "@/types";
 
 // Phase 3: PAGE_SIZE从10改为20，减少API往返次数
 const PAGE_SIZE = 20;
+// 安全限制：最多自动加载的页数，防止无限翻页导致请求风暴
+const MAX_PAGES = 10;
 
 interface ArticleFilters {
   category?: string;
@@ -36,21 +37,20 @@ export function useArticles(filters: ArticleFilters = {}) {
     },
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage || lastPage.length < PAGE_SIZE) return undefined;
+      // 安全限制：超过最大页数后停止自动加载
+      if (allPages.length >= MAX_PAGES) return undefined;
       return allPages.length * PAGE_SIZE;
     },
     initialPageParam: 0,
     staleTime: 5 * 60 * 1000,  // Phase 3: 改为5分钟，与Redis TTL一致
     gcTime: 30 * 60 * 1000,      // 30分钟缓存
+    retry: 1,                    // 失败只重试1次，避免429雪崩
+    retryDelay: 2000,            // 重试间隔2秒
   });
 
-  // Phase 3: 自动预取下一页
-  useEffect(() => {
-    if (query.hasNextPage && !query.isFetchingNextPage && query.data) {
-      // 当用户接近底部时，预取下一页
-      const nextPageParam = query.data.pages.length * PAGE_SIZE;
-      query.fetchNextPage();
-    }
-  }, [query.data?.pages.length, query.hasNextPage, query.isFetchingNextPage]);
+  // 注意：不再自动预取所有页面，改为由用户滚动触发
+  // ArticleList.tsx 中通过 IntersectionObserver 调用 fetchNextPage
+  // fetchingRef + 1秒冷却期 防止级联触发
 
   return query;
 }

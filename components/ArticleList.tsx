@@ -16,14 +16,21 @@ interface Props {
 
 export default function ArticleList({ articles, loading, hasMore, onLoadMore, emptyText = "暂无文章", onArticleNavigate }: Props) {
   const observer = useRef<IntersectionObserver | null>(null);
+  // 防止IntersectionObserver级联触发fetchNextPage
+  const fetchingRef = useRef(false);
 
   const lastElementRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (loading) return;
       if (observer.current) observer.current.disconnect();
       observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) onLoadMore();
-      }, { rootMargin: "100px" });
+        if (entries[0].isIntersecting && hasMore && !fetchingRef.current) {
+          fetchingRef.current = true;
+          onLoadMore();
+          // 1秒冷却期，防止加载状态还没更新就再次触发
+          setTimeout(() => { fetchingRef.current = false; }, 1000);
+        }
+      }, { rootMargin: "200px" });
       if (node) observer.current.observe(node);
     },
     [loading, hasMore, onLoadMore]
