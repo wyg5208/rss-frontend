@@ -6,7 +6,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { LogIn, AlertCircle } from "lucide-react";
 
 const AUTH_URL =
-  typeof window !== "undefined"
+  typeof window !== "undefined" && process.env.NODE_ENV === "development"
     ? process.env.NEXT_PUBLIC_AUTH_URL || ""
     : "";
 

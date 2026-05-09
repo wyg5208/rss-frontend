@@ -21,10 +21,12 @@ function getToken(): string | null {
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const isAbsolute = path.startsWith("http");
-  const apiBase =
-    typeof window !== "undefined" && process.env.NEXT_PUBLIC_API_URL
-      ? process.env.NEXT_PUBLIC_API_URL
-      : "";
+  // 生产环境使用相对路径 /api/v1/... 由 Vercel rewrite 转发
+  // 开发环境使用 NEXT_PUBLIC_API_URL（如 http://localhost:8001）
+  let apiBase = "";
+  if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+    apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+  }
   const url = isAbsolute ? path : `${apiBase}/api/v1${path}`;
 
   const token = getToken();
