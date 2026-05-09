@@ -158,7 +158,7 @@ export default function FloatingToolbar({
       <div
         style={verticalStyle}
         className={`fixed z-30 flex flex-col gap-1 p-1.5 
-          bg-white/15 backdrop-blur-sm border border-gray-200/50 shadow-lg
+          bg-transparent border border-white/5 shadow-none
           transition-all duration-300 ${positionClass}`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
