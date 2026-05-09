@@ -98,8 +98,11 @@ export default function ArticleDetailPage() {
       // 开启双语且未翻译，实时翻译
       setTranslating(true);
       try {
+        // 根据文章语言动态设置目标语言：中文→英文，英文→中文
+        const targetLang = article.language === 'en' ? 'zh' : 'en';
+        
         const response = await api.post<{ success: boolean; data: Record<string, unknown> }>(
-          `/ai/translate/${article.id}?target_lang=en`
+          `/ai/translate/${article.id}?target_lang=${targetLang}`
         );
         
         if (response.success && response.data) {
