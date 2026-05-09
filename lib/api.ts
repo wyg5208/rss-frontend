@@ -20,6 +20,7 @@ class ApiError extends Error {
 // 刷新token的锁，防止并发刷新
 let refreshPromise: Promise<boolean> | null = null;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAuthStorage(): any {
   if (typeof window === "undefined") return null;
   try {

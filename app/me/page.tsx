@@ -55,7 +55,7 @@ export default function MePage() {
         // 获取忽略文章数
         try {
           const blocksData = await api.get<{
-            items: any[];
+            items: { interaction_id: number; article_id: number }[];
             total: number;
           }>("/user/blocks?page=1&size=1");
           setBlockedCount(blocksData.total || 0);

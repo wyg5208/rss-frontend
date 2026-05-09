@@ -95,7 +95,7 @@ export default function BlockedPage() {
         ) : blockedArticles.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-gray-300">
             <p className="text-sm">暂无忽略的文章</p>
-            <p className="text-xs text-gray-400 mt-2">在文章详情页点击"不看"按钮可添加</p>
+            <p className="text-xs text-gray-400 mt-2">在文章详情页点击&ldquo;不看&rdquo;按钮可添加</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
