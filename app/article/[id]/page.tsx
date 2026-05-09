@@ -83,12 +83,12 @@ export default function ArticleDetailPage() {
 
   return (
     <ErrorBoundary>
-      <div className="flex flex-col min-h-screen pb-16">
+      <div className="flex flex-col min-h-screen">
         <header className="sticky top-0 z-30 bg-white px-4 py-3 flex items-center gap-3 border-b border-gray-100">
           <button onClick={() => router.back()} className="p-1 -ml-1"><ArrowLeft className="w-5 h-5" /></button>
           <span className="text-sm text-gray-500 flex-1 truncate">{a.source}</span>
         </header>
-        <article className="p-4">
+        <article className="p-4 pb-20">
           <h1 className="text-xl font-bold text-gray-900 leading-relaxed mb-3">{a.title}</h1>
           <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">
             <span>{a.source}</span>
@@ -114,7 +114,7 @@ export default function ArticleDetailPage() {
             <ExternalLink className="w-4 h-4" /> 查看原文
           </a>
         </article>
-        <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-around">
+        <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-around z-40 safe-bottom">
           <button onClick={handleShare} className="flex flex-col items-center gap-1 text-gray-500 active:text-blue-600">
             <Share2 className="w-5 h-5" /><span className="text-[11px]">分享</span>
           </button>
