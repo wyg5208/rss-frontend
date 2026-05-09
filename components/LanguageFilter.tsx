@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useTagFilterStore } from '@/store/useTagFilterStore';
-import { Globe } from 'lucide-react';
 
 /**
  * 语言筛选下拉菜单组件
