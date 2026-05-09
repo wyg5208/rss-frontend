@@ -13,6 +13,7 @@ import { useTagFilterStore } from "@/store/useTagFilterStore";
 const CATEGORY_TABS = [
   { label: "推荐", value: "" },
   { label: "全部", value: "all" },
+  { label: "经济学人", value: "经济学人" },
   { label: "科技", value: "科技" },
   { label: "经济", value: "经济" },
   { label: "教育", value: "教育" },
