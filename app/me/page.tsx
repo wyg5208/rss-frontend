@@ -7,7 +7,6 @@ import { useAuthStore } from "@/store/useAuthStore";
 import {
   Heart,
   Clock,
-  ExternalLink,
   Settings,
   ChevronRight,
   LogIn,
@@ -33,6 +32,7 @@ export default function MePage() {
       setStatsLoading(false);
       return;
     }
+    // 异步获取统计，不阻塞渲染
     const fetchStats = async () => {
       try {
         const { api } = await import("@/lib/api");
@@ -43,9 +43,10 @@ export default function MePage() {
         setFavCount(data.favorite_count || 0);
         setReadCount(data.read_count || 0);
         
-        // 获取订阅数
-        const subData = await api.get<{ total: number }>("/user/subscriptions");
-        setSubCount(subData.total || 0);
+        // 获取关注标签数（从 useTagFilterStore 获取）
+        const { useTagFilterStore } = await import("@/store/useTagFilterStore");
+        const { selectedTags } = useTagFilterStore.getState();
+        setSubCount(selectedTags.length);
       } catch {
         // stats unavailable
       } finally {
@@ -99,7 +100,7 @@ export default function MePage() {
                 <p className="text-xl font-bold">
                   {statsLoading ? "-" : subCount}
                 </p>
-                <p className="text-xs text-white/80">关注</p>
+                <p className="text-xs text-white/80">关注标签</p>
               </div>
             </div>
           </>
@@ -122,7 +123,7 @@ export default function MePage() {
 
       <div className="bg-white mt-2">
         <Link
-          href="/subscribe?tab=favorites"
+          href="/me/favorites"
           className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
         >
           <Heart className="w-5 h-5 text-red-400 mr-3" />
@@ -130,7 +131,7 @@ export default function MePage() {
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </Link>
         <Link
-          href="/subscribe?tab=history"
+          href="/me/history"
           className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
         >
           <Clock className="w-5 h-5 text-blue-400 mr-3" />
@@ -138,46 +139,35 @@ export default function MePage() {
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </Link>
         <Link
-          href="/subscribe?tab=tags"
+          href="/me/tags"
           className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
         >
           <Tag className="w-5 h-5 text-purple-400 mr-3" />
-          <span className="flex-1 text-[15px]">我的订阅</span>
+          <span className="flex-1 text-[15px]">我的标签</span>
           <span className="text-xs text-gray-400 mr-1">{subCount}个</span>
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </Link>
-        <a
-          href="http://localhost:8001/docs"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href="/me/settings"
           className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
         >
-          <ExternalLink className="w-5 h-5 text-green-400 mr-3" />
-          <span className="flex-1 text-[15px]">API文档</span>
-          <ChevronRight className="w-4 h-4 text-gray-300" />
-        </a>
-      </div>
-
-      {isAuthenticated && (
-        <div className="bg-white mt-2">
-          <button
-            onClick={() => {
-              logout();
-              router.refresh();
-            }}
-            className="flex items-center w-full px-4 py-3.5 active:bg-gray-50 border-b border-gray-50 text-red-500"
-          >
-            <LogOut className="w-5 h-5 mr-3" />
-            <span className="flex-1 text-[15px] text-left">退出登录</span>
-          </button>
-        </div>
-      )}
-
-      <div className="bg-white mt-2">
-        <div className="flex items-center px-4 py-3.5 border-b border-gray-50">
           <Settings className="w-5 h-5 text-gray-400 mr-3" />
           <span className="flex-1 text-[15px]">设置</span>
-        </div>
+          <ChevronRight className="w-4 h-4 text-gray-300" />
+        </Link>
+      </div>
+
+      <div className="bg-white mt-2">
+        <button
+          onClick={() => {
+            logout();
+            router.refresh();
+          }}
+          className="flex items-center w-full px-4 py-3.5 active:bg-gray-50 border-b border-gray-50 text-red-500"
+        >
+          <LogOut className="w-5 h-5 mr-3" />
+          <span className="flex-1 text-[15px] text-left">退出登录</span>
+        </button>
       </div>
       <p className="text-center text-xs text-gray-300 mt-8">
         RSS新闻聚合 v0.1.0
