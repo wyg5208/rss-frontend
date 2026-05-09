@@ -20,7 +20,6 @@ interface Props {
  * - 无摘要时：点击触发生成
  * - 有摘要时：点击弹出遮罩层显示摘要内容
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function FloatingAISummary({
   articleId,
   aiSummary,

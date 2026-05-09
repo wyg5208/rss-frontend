@@ -64,7 +64,6 @@ function HomeContent() {
 
   const handleArticleNavigate = useCallback((articleId: number) => {
     useArticleNavStore.getState().setListContext(articleIds);
-    // eslint-disable-next-line no-unused-vars
   }, [articleIds]);
 
   return (

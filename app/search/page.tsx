@@ -28,13 +28,12 @@ function SearchContent() {
     setKeyword(kw);
   }, [addSearch]);
 
-  const articles = pages?.pages.flat() || [];
+  const articles = useMemo(() => pages?.pages.flat() || [], [pages]);
   const showResults = keyword.length > 0;
   const articleIds = useMemo(() => articles.map(a => a.id), [articles]);
 
   const handleArticleNavigate = useCallback((articleId: number) => {
     useArticleNavStore.getState().setListContext(articleIds);
-    // eslint-disable-next-line no-unused-vars
   }, [articleIds]);
 
   return (
