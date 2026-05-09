@@ -37,7 +37,7 @@ export function useArticles(filters: ArticleFilters = {}) {
       return allPages.length * PAGE_SIZE;
     },
     initialPageParam: 0,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,  // 10分钟内不重新获取
+    gcTime: 30 * 60 * 1000,      // 30分钟缓存
   });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense, useEffect } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -25,16 +25,11 @@ const CATEGORY_TABS = [
 function HomeContent() {
   const searchParams = useSearchParams();
   const urlTag = searchParams.get("tag");
-  const { selectedTags, languageFilter, loadFromBackend } = useTagFilterStore();
+  const { selectedTags, languageFilter } = useTagFilterStore();
   
   const [activeTab, setActiveTab] = useState(
     urlTag ? decodeURIComponent(urlTag) : "推荐"
   );
-
-  // 页面加载时从后端加载标签偏好
-  useEffect(() => {
-    loadFromBackend();
-  }, [loadFromBackend]);
 
   // 构建筛选条件：多标签 OR + 语言筛选
   const filters = useMemo(() => {
