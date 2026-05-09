@@ -6,7 +6,7 @@ import { useSettingsStore } from "@/store/useSettingsStore";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { fontSize, setFontSize, clearCache } = useSettingsStore();
+  const { fontSize, setFontSize, autoHideRead, setAutoHideRead, autoHideBlocked, setAutoHideBlocked, clearCache } = useSettingsStore();
 
   const fontSizes: { value: 'small' | 'medium' | 'large'; label: string; size: string }[] = [
     { value: 'small', label: '小', size: 'text-sm' },
@@ -43,6 +43,52 @@ export default function SettingsPage() {
                 {opt.label}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* 自动屏蔽设置 */}
+        <div className="px-4 py-3.5 border-b border-gray-50">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">自动屏蔽</h3>
+          <p className="text-xs text-gray-500 mb-3">开启后，系统会自动过滤已读和不看的文章，避免重复推荐</p>
+          
+          {/* 自动屏蔽已读 */}
+          <div className="flex items-center justify-between py-3 border-t border-gray-100">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">屏蔽已读文章</p>
+              <p className="text-xs text-gray-500 mt-0.5">自动隐藏已经看过的文章</p>
+            </div>
+            <button
+              onClick={() => setAutoHideRead(!autoHideRead)}
+              className={`relative inline-flex items-center h-7 w-12 rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                autoHideRead ? 'bg-blue-500' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block w-5 h-5 transform bg-white rounded-full shadow-md transition-transform duration-200 ease-in-out ${
+                  autoHideRead ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* 自动屏蔽不看 */}
+          <div className="flex items-center justify-between py-3 border-t border-gray-100">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">屏蔽不看文章</p>
+              <p className="text-xs text-gray-500 mt-0.5">自动隐藏标记为“不看”的文章</p>
+            </div>
+            <button
+              onClick={() => setAutoHideBlocked(!autoHideBlocked)}
+              className={`relative inline-flex items-center h-7 w-12 rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                autoHideBlocked ? 'bg-blue-500' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block w-5 h-5 transform bg-white rounded-full shadow-md transition-transform duration-200 ease-in-out ${
+                  autoHideBlocked ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
         </div>
 

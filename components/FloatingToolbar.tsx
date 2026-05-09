@@ -21,6 +21,7 @@ interface FloatingToolbarProps {
   onFavoriteToggle: () => void;
   onBlockToggle: () => void;
   aiLoading?: boolean;
+  aiVisible?: boolean; // AI摘要是否可见
 }
 
 /**
@@ -51,6 +52,7 @@ export default function FloatingToolbar({
   onFavoriteToggle,
   onBlockToggle,
   aiLoading = false,
+  aiVisible = false,
 }: FloatingToolbarProps) {
   const [position, setPosition] = useState<'left' | 'right'>('left');
   const [verticalPosition, setVerticalPosition] = useState(50); // 垂直位置百分比 (0-100)
@@ -164,19 +166,21 @@ export default function FloatingToolbar({
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
       >
-        {/* 1. AI摘要 - 点击触发生成（显示已改为内联） */}
+        {/* 1. AI摘要 - 点击触发生成或切换显示 */}
         <button
           onClick={() => {
-            if (!hasAIContent) {
-              onAIGenerate();
-            }
-            // 如果已有内容，无需操作，内联显示会自动展示
+            // 无论是否有内容，都触发onAIGenerate（内部会判断是生成还是切换显示）
+            onAIGenerate();
           }}
           disabled={aiLoading}
           className="w-9 h-9 flex items-center justify-center rounded-lg 
             hover:bg-white/80 active:bg-white transition-colors
             disabled:opacity-50"
-          title={hasAIContent ? "AI摘要已显示" : "生成AI摘要"}
+          title={
+            aiLoading ? "正在生成..." :
+            !hasAIContent ? "生成AI摘要" :
+            aiVisible ? "隐藏AI摘要" : "显示AI摘要"
+          }
         >
           {aiLoading ? (
             <span className="animate-spin text-amber-500 text-sm">⏳</span>

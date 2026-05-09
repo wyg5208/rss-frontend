@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, Suspense } from "react";
+import { useState, useMemo, useCallback, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -9,6 +9,7 @@ import LanguageFilter from "@/components/LanguageFilter";
 import { useArticles } from "@/hooks/useArticles";
 import { useTagFilterStore } from "@/store/useTagFilterStore";
 import { useArticleNavStore } from "@/store/useArticleNavStore";
+import { useAutoFilter } from "@/hooks/useAutoFilter";
 
 // 固定中文分类Tab，对应后端 tag_category 筛选
 const CATEGORY_TABS = [
@@ -59,8 +60,21 @@ function HomeContent() {
 
   const { data: pages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, isLoading } = useArticles(filters);
 
+  // 原始文章列表
   const articles = useMemo(() => pages?.pages.flat() || [], [pages]);
-  const articleIds = useMemo(() => articles.map(a => a.id), [articles]);
+  
+  // 应用自动屏蔽过滤
+  const { filteredArticles } = useAutoFilter(articles);
+  
+  // 自动补充机制：如果过滤后文章数量少于10篇，自动加载更多
+  const articleIds = useMemo(() => filteredArticles.map(a => a.id), [filteredArticles]);
+  
+  useEffect(() => {
+    // 当过滤后文章少于10篇且还有更多文章可加载时，自动加载
+    if (filteredArticles.length < 10 && hasNextPage && !isFetchingNextPage && !isFetching) {
+      fetchNextPage();
+    }
+  }, [filteredArticles.length, hasNextPage, isFetchingNextPage, isFetching, fetchNextPage]);
 
   const handleArticleNavigate = useCallback((articleId: number) => {
     useArticleNavStore.getState().setListContext(articleIds);
@@ -86,7 +100,7 @@ function HomeContent() {
       />
       <div className="flex-1 pb-14">
         <ArticleList
-          articles={articles}
+          articles={filteredArticles}
           loading={isFetchingNextPage || isFetching || isLoading}
           hasMore={!!hasNextPage}
           onLoadMore={() => fetchNextPage()}

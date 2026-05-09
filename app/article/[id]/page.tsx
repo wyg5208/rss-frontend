@@ -27,6 +27,7 @@ export default function ArticleDetailPage() {
   const { getPrevId, getNextId, hasPrev, hasNext } = useArticleNavStore();
   const [aiData, setAiData] = useState<{ ai_summary?: string; ai_key_points?: string[]; ai_processed_at?: string }>({});
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiVisible, setAiVisible] = useState(false); // 控制AI摘要显示/隐藏
   const [bilingualOn, setBilingualOn] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [translatedData, setTranslatedData] = useState<{
@@ -41,11 +42,16 @@ export default function ArticleDetailPage() {
     try {
       const res = await api.get<{ success: boolean; data: Record<string, unknown> }>(`/ai/article/${article.id}`);
       if (res.success && res.data) {
+        const aiSummary = res.data.ai_summary as string | undefined;
         setAiData({
-          ai_summary: res.data.ai_summary as string | undefined,
+          ai_summary: aiSummary,
           ai_key_points: res.data.ai_key_points as string[] | undefined,
           ai_processed_at: res.data.ai_processed_at as string | undefined
         });
+        // 如果后端已有AI摘要，自动显示
+        if (aiSummary) {
+          setAiVisible(true);
+        }
       }
     } catch {
       // AI数据加载失败不影响主功能
@@ -63,6 +69,14 @@ export default function ArticleDetailPage() {
   // 生成 AI 摘要（供悬浮按钮调用）
   const handleGenerateAI = useCallback(async () => {
     if (!article?.id) return;
+    
+    // 如果已有AI摘要，切换显示/隐藏
+    if (aiData.ai_summary) {
+      setAiVisible(!aiVisible);
+      return;
+    }
+    
+    // 没有摘要，生成新的
     setAiLoading(true);
     try {
       const response = await api.post<{ success: boolean; message: string; data: Record<string, unknown> }>(`/ai/process/${article.id}`);
@@ -74,6 +88,8 @@ export default function ArticleDetailPage() {
           ai_key_points: apiData.ai_key_points as string[] | undefined,
           ai_processed_at: apiData.ai_processed_at as string | undefined
         });
+        // 生成成功后自动显示
+        setAiVisible(true);
       }
     } catch {
       // 生成失败
@@ -81,7 +97,7 @@ export default function ArticleDetailPage() {
       setAiLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [article?.id]);
+  }, [article?.id, aiData.ai_summary, aiVisible]);
 
   // Toast提示
   const showToastMessage = useCallback((msg: string) => {
@@ -161,8 +177,21 @@ export default function ArticleDetailPage() {
         setIsBlocked(response.is_blocked);
         if (response.is_blocked) {
           showToastMessage("已加入不看列表");
-          // 3秒后自动返回列表页
-          setTimeout(() => router.push("/"), 3000);
+          
+          // 自动跳转到下一篇文章
+          const nextId = getNextId(article.id);
+          if (nextId) {
+            // 有下一篇文章，1秒后跳转
+            setTimeout(() => {
+              router.push("/article/" + nextId);
+            }, 1000);
+          } else {
+            // 没有下一篇文章，返回上一页（列表页）
+            // 列表页会自动过滤不看的文章并补充新文章
+            setTimeout(() => {
+              router.back();
+            }, 1000);
+          }
         } else {
           showToastMessage("已取消不看");
         }
@@ -172,7 +201,7 @@ export default function ArticleDetailPage() {
     } catch {
       showToastMessage("操作失败，请稍后重试");
     }
-  }, [article?.id, router, showToastMessage]);
+  }, [article?.id, router, showToastMessage, getNextId]);
 
   if (isLoading) return (
     <div className="p-4 animate-pulse">
@@ -192,7 +221,7 @@ export default function ArticleDetailPage() {
 
   const a = article;
   const fav = isFavorite(a.id);
-  const content = a.clean_content || a.summary || "";
+  const content = a.clean_content || ""; // 不再使用summary作为fallback，避免重复显示
   const hasHTML = !!a.raw_content;
   const time = a.published_at ? dayjs(a.published_at).format("YYYY-MM-DD HH:mm") : "";
   
@@ -273,6 +302,16 @@ export default function ArticleDetailPage() {
           </div>
           {a.image_url && (<ImageWithFallback src={a.image_url} alt={a.title} width={600} height={360} className="w-full rounded-lg mb-4" />)}
           
+          {/* AI摘要 - 显示在摘要之前、正文之前 */}
+          {/* 只有当aiVisible为true时才显示 */}
+          {aiVisible && (
+            <AISummaryCard
+              aiSummary={aiData.ai_summary}
+              aiKeyPoints={aiData.ai_key_points}
+              aiProcessedAt={aiData.ai_processed_at}
+            />
+          )}
+          
           {/* 原文摘要（如果有） */}
           {a.summary && !bilingualOn && (
             <div className="mb-4 p-3 bg-gray-50 rounded-lg border-l-4 border-gray-300">
@@ -287,14 +326,6 @@ export default function ArticleDetailPage() {
               type="summary"
             />
           )}
-          
-          {/* AI摘要 - 内联显示（与双语翻译对齐） */}
-          {/* 放在摘要之后、正文之前，避免与翻译内容冲突 */}
-          <AISummaryCard
-            aiSummary={aiData.ai_summary}
-            aiKeyPoints={aiData.ai_key_points}
-            aiProcessedAt={aiData.ai_processed_at}
-          />
           
           {hasHTML && a.raw_content ? (<SafeHTML html={a.raw_content} />)
           : content ? (<div className="text-[15px] leading-relaxed text-gray-800 whitespace-pre-wrap">{content}</div>)
@@ -320,6 +351,7 @@ export default function ArticleDetailPage() {
           onFavoriteToggle={() => toggleFavorite(a)}
           onBlockToggle={handleBlockToggle}
           aiLoading={aiLoading}
+          aiVisible={aiVisible}
         />
 
         {/* 底部操作栏: 分享 | 返回 | 首页 */}

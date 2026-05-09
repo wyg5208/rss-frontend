@@ -13,6 +13,7 @@ import {
   LogOut,
   Tag,
   RefreshCw,
+  EyeOff,
 } from "lucide-react";
 
 export default function MePage() {
@@ -22,6 +23,7 @@ export default function MePage() {
   const [favCount, setFavCount] = useState(0);
   const [readCount, setReadCount] = useState(0);
   const [subCount, setSubCount] = useState(0);
+  const [blockedCount, setBlockedCount] = useState(0);
   const [statsLoading, setStatsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -49,6 +51,17 @@ export default function MePage() {
         const { useTagFilterStore } = await import("@/store/useTagFilterStore");
         const { selectedTags } = useTagFilterStore.getState();
         setSubCount(selectedTags.length);
+        
+        // 获取忽略文章数
+        try {
+          const blocksData = await api.get<{
+            items: any[];
+            total: number;
+          }>("/user/blocks?page=1&size=1");
+          setBlockedCount(blocksData.total || 0);
+        } catch {
+          // 忽略错误
+        }
       } catch {
         // stats unavailable
       } finally {
@@ -183,6 +196,15 @@ export default function MePage() {
           <Tag className="w-5 h-5 text-purple-400 mr-3" />
           <span className="flex-1 text-[15px]">我的标签</span>
           <span className="text-xs text-gray-400 mr-1">{subCount}个</span>
+          <ChevronRight className="w-4 h-4 text-gray-300" />
+        </Link>
+        <Link
+          href="/me/blocked"
+          className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
+        >
+          <EyeOff className="w-5 h-5 text-gray-500 mr-3" />
+          <span className="flex-1 text-[15px]">忽略文章</span>
+          <span className="text-xs text-gray-400 mr-1">{statsLoading ? "-" : blockedCount}篇</span>
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </Link>
         <Link

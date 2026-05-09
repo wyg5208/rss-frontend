@@ -4,10 +4,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useArticleStore } from "@/store/useArticleStore";
+import { useTokenManager } from "@/hooks/useTokenManager";
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, checkAuth } = useAuthStore();
   const { syncFavorites, syncHistory } = useArticleStore();
+  
+  // 启用token自动管理
+  useTokenManager();
 
   useEffect(() => {
     checkAuth();

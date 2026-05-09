@@ -1,12 +1,13 @@
 ﻿"use client";
 
-import { useState, useCallback, useMemo, Suspense } from "react";
+import { useState, useCallback, useMemo, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
 import ArticleList from "@/components/ArticleList";
 import { useArticles } from "@/hooks/useArticles";
 import { useSearchStore } from "@/store/useSearchStore";
 import { useArticleNavStore } from "@/store/useArticleNavStore";
+import { useAutoFilter } from "@/hooks/useAutoFilter";
 import { X, Clock } from "lucide-react";
 
 function SearchContent() {
@@ -29,8 +30,21 @@ function SearchContent() {
   }, [addSearch]);
 
   const articles = useMemo(() => pages?.pages.flat() || [], [pages]);
+  
+  // 应用自动屏蔽过滤
+  const { filteredArticles } = useAutoFilter(articles);
+  
+  // 自动补充机制
+  const articleIds = useMemo(() => filteredArticles.map(a => a.id), [filteredArticles]);
+  
+  useEffect(() => {
+    // 当过滤后文章少于10篇且还有更多文章可加载时，自动加载
+    if (keyword && filteredArticles.length < 10 && hasNextPage && !isFetchingNextPage && !isFetching) {
+      fetchNextPage();
+    }
+  }, [keyword, filteredArticles.length, hasNextPage, isFetchingNextPage, isFetching, fetchNextPage]);
+  
   const showResults = keyword.length > 0;
-  const articleIds = useMemo(() => articles.map(a => a.id), [articles]);
 
   const handleArticleNavigate = useCallback((articleId: number) => {
     useArticleNavStore.getState().setListContext(articleIds);
@@ -45,10 +59,10 @@ function SearchContent() {
       {showResults ? (
         <div className="flex-1">
           <div className="px-4 py-2 text-xs text-gray-500">
-            搜索 &quot;{keyword}&quot; {articles.length > 0 ? `找到 ${articles.length} 条结果` : ""}
+            搜索 &quot;{keyword}&quot; {filteredArticles.length > 0 ? `找到 ${filteredArticles.length} 条结果` : ""}
           </div>
           <ArticleList
-            articles={articles}
+            articles={filteredArticles}
             loading={isFetchingNextPage || isFetching}
             hasMore={!!hasNextPage}
             onLoadMore={() => fetchNextPage()}

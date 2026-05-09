@@ -65,7 +65,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       checkAuth: async () => {
-        const { token } = get();
+        const { token, refreshToken } = get();
         if (!token) {
           set({ isChecking: false });
           return false;
@@ -79,11 +79,34 @@ export const useAuthStore = create<AuthState>()(
             set({ isChecking: false });
             return true;
           }
+          
+          // Token无效，尝试刷新
+          if (refreshToken) {
+            console.log("Token invalid, attempting refresh...");
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+            const refreshRes = await fetch(`${apiBase}/api/v1/auth/refresh`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ refresh_token: refreshToken }),
+            });
+            
+            if (refreshRes.ok) {
+              const refreshData = await refreshRes.json();
+              if (refreshData.access_token) {
+                // 刷新成功，更新token
+                await get().login(refreshData.access_token, refreshData.refresh_token || null);
+                console.log("Token refreshed successfully in checkAuth");
+                return true;
+              }
+            }
+          }
         } catch {
-          // 网络错误，假设token有效
+          // 网络错误，假设token有效（避免网络波动导致登出）
           set({ isChecking: false });
           return !!token;
         }
+        
+        // Token无效且刷新失败，清除登录状态
         get().logout();
         return false;
       },
