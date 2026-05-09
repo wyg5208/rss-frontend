@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
 import CategoryTabs from "@/components/CategoryTabs";
 import ArticleList from "@/components/ArticleList";
+import LanguageFilter from "@/components/LanguageFilter";
 import { useArticles } from "@/hooks/useArticles";
+import { useTagFilterStore } from "@/store/useTagFilterStore";
 
 // 固定中文分类Tab，对应后端 tag_category 筛选
 const CATEGORY_TABS = [
@@ -17,24 +19,46 @@ const CATEGORY_TABS = [
   { label: "政治", value: "政治" },
   { label: "全球", value: "全球" },
   { label: "生活", value: "生活" },
-  { label: "经济学人", value: "经济学人" },
 ];
 
 function HomeContent() {
   const searchParams = useSearchParams();
   const urlTag = searchParams.get("tag");
+  const { selectedTags, languageFilter, loadFromBackend } = useTagFilterStore();
+  
   const [activeTab, setActiveTab] = useState(
     urlTag ? decodeURIComponent(urlTag) : "推荐"
   );
 
-  // 推荐/全部不筛选，URL标签筛选优先，其他用 tag_category 筛选
+  // 页面加载时从后端加载标签偏好
+  useEffect(() => {
+    loadFromBackend();
+  }, [loadFromBackend]);
+
+  // 构建筛选条件：多标签 OR + 语言筛选
   const filters = useMemo(() => {
-    if (urlTag) {
-      return { tag: decodeURIComponent(urlTag) };
+    const f: Record<string, string> = {};
+    
+    // 1. 多标签筛选（OR关系）
+    if (selectedTags.length > 0) {
+      f.tags = selectedTags.join(",");
     }
-    if (activeTab === "推荐" || activeTab === "全部") return {};
-    return { tag_category: activeTab };
-  }, [activeTab, urlTag]);
+    // 2. URL单标签筛选（兼容旧逻辑）
+    else if (urlTag) {
+      f.tag = decodeURIComponent(urlTag);
+    }
+    // 3. 分类Tab筛选
+    else if (activeTab !== "推荐" && activeTab !== "全部") {
+      f.tag_category = activeTab;
+    }
+    
+    // 4. 语言筛选（如果不是默认的"全部"）
+    if (languageFilter !== "all") {
+      f.language = languageFilter;
+    }
+    
+    return f;
+  }, [activeTab, urlTag, selectedTags, languageFilter]);
 
   const { data: pages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, isLoading } = useArticles(filters);
 
@@ -55,13 +79,15 @@ function HomeContent() {
         active={activeTab}
         onChange={setActiveTab}
       />
+      {/* 语言筛选组件 */}
+      <LanguageFilter />
       <div className="flex-1 pb-14">
         <ArticleList
           articles={articles}
           loading={isFetchingNextPage || isFetching || isLoading}
           hasMore={!!hasNextPage}
           onLoadMore={() => fetchNextPage()}
-          emptyText="暂无文章"
+          emptyText={selectedTags.length > 0 ? "暂无符合筛选条件的文章" : "暂无文章"}
         />
       </div>
     </div>

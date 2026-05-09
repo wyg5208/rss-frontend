@@ -8,10 +8,12 @@ const PAGE_SIZE = 10;
 
 interface ArticleFilters {
   category?: string;
-  tag?: string;
+  tag?: string;        // 单标签筛选（模糊匹配）
+  tags?: string;       // 多标签筛选，逗号分隔，OR关系
   tag_category?: string;
   source_id?: number;
   search?: string;
+  language?: string;    // 语言筛选：zh/en/other/all
   sort_by?: string;
   sort_order?: string;
 }
