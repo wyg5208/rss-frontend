@@ -21,7 +21,7 @@ interface Props {
  * - 有摘要时：点击弹出遮罩层显示摘要内容
  */
 export default function FloatingAISummary({
-  articleId,
+  articleId: _articleId,
   aiSummary,
   aiKeyPoints,
   aiProcessedAt,

@@ -62,7 +62,7 @@ function HomeContent() {
   const articles = useMemo(() => pages?.pages.flat() || [], [pages]);
   const articleIds = useMemo(() => articles.map(a => a.id), [articles]);
 
-  const handleArticleNavigate = useCallback((articleId: number) => {
+  const handleArticleNavigate = useCallback((_articleId: number) => {
     useArticleNavStore.getState().setListContext(articleIds);
   }, [articleIds]);
 
