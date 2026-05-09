@@ -53,6 +53,7 @@ export default function FloatingToolbar({
   aiLoading = false,
 }: FloatingToolbarProps) {
   const [position, setPosition] = useState<'left' | 'right'>('left');
+  const [verticalPosition, setVerticalPosition] = useState(50); // 垂直位置百分比 (0-100)
   const [isDragging, setIsDragging] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const dragStartX = useRef(0);
@@ -64,6 +65,13 @@ export default function FloatingToolbar({
       const saved = localStorage.getItem('toolbar-position');
       if (saved === 'right' || saved === 'left') {
         setPosition(saved);
+      }
+      const savedV = localStorage.getItem('toolbar-vertical');
+      if (savedV) {
+        const v = parseFloat(savedV);
+        if (!isNaN(v) && v >= 0 && v <= 100) {
+          setVerticalPosition(v);
+        }
       }
     }
   }, []);
@@ -78,15 +86,24 @@ export default function FloatingToolbar({
     if (!isDragging) return;
     
     const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
     const deltaX = Math.abs(endX - dragStartX.current);
-    const deltaY = Math.abs(e.changedTouches[0].clientY - dragStartY.current);
+    const deltaY = Math.abs(endY - dragStartY.current);
     
-    // 只有水平移动超过 50px 且大于垂直移动时才触发拖拽
+    // 水平拖拽：切换左右位置
     if (deltaX > 50 && deltaX > deltaY) {
       const screenWidth = window.innerWidth;
       const newPos = endX > screenWidth / 2 ? 'right' : 'left';
       setPosition(newPos);
       localStorage.setItem('toolbar-position', newPos);
+    }
+    // 垂直拖拽：调整上下位置
+    else if (deltaY > 50 && deltaY > deltaX) {
+      const screenHeight = window.innerHeight;
+      const newV = (endY / screenHeight) * 100;
+      const clampedV = Math.max(10, Math.min(90, newV)); // 限制在 10%-90% 范围
+      setVerticalPosition(clampedV);
+      localStorage.setItem('toolbar-vertical', clampedV.toString());
     }
     
     setIsDragging(false);
@@ -104,11 +121,20 @@ export default function FloatingToolbar({
     const deltaX = Math.abs(e.clientX - dragStartX.current);
     const deltaY = Math.abs(e.clientY - dragStartY.current);
     
+    // 水平拖拽：切换左右位置
     if (deltaX > 50 && deltaX > deltaY) {
       const screenWidth = window.innerWidth;
       const newPos = e.clientX > screenWidth / 2 ? 'right' : 'left';
       setPosition(newPos);
       localStorage.setItem('toolbar-position', newPos);
+    }
+    // 垂直拖拽：调整上下位置
+    else if (deltaY > 50 && deltaY > deltaX) {
+      const screenHeight = window.innerHeight;
+      const newV = (e.clientY / screenHeight) * 100;
+      const clampedV = Math.max(10, Math.min(90, newV)); // 限制在 10%-90% 范围
+      setVerticalPosition(clampedV);
+      localStorage.setItem('toolbar-vertical', clampedV.toString());
     }
     
     setIsDragging(false);
@@ -120,12 +146,19 @@ export default function FloatingToolbar({
     ? 'left-0 rounded-r-xl' 
     : 'right-0 rounded-l-xl';
 
+  // 计算垂直位置样式
+  const verticalStyle = {
+    top: `${verticalPosition}%`,
+    transform: 'translateY(-50%)',
+  };
+
   return (
     <>
       {/* 浮动工具栏 */}
       <div
-        className={`fixed top-1/2 -translate-y-1/2 z-30 flex flex-col gap-1 p-1.5 
-          bg-white/85 backdrop-blur-sm border border-gray-200/50 shadow-lg
+        style={verticalStyle}
+        className={`fixed z-30 flex flex-col gap-1 p-1.5 
+          bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg
           transition-all duration-300 ${positionClass}`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
