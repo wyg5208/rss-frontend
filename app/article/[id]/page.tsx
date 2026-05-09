@@ -308,7 +308,7 @@ export default function ArticleDetailPage() {
           aiLoading={aiLoading}
         />
 
-        {/* 底部操作栏: 简化为仅分享和返回 */}
+        {/* 底部操作栏: 分享 | 返回 | 首页 */}
         <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-around z-40 safe-bottom">
           {/* 分享 */}
           <button onClick={handleShare} className="flex flex-col items-center gap-0.5 px-1 text-gray-600 active:text-blue-600">
@@ -316,10 +316,16 @@ export default function ArticleDetailPage() {
             <span className="text-[10px]">分享</span>
           </button>
 
-          {/* 返回 */}
-          <button onClick={handleBack} className="flex flex-col items-center gap-0.5 px-1 text-gray-600 active:text-blue-600">
-            <Home className="w-5 h-5" />
+          {/* 返回上一页 */}
+          <button onClick={() => router.back()} className="flex flex-col items-center gap-0.5 px-1 text-gray-600 active:text-blue-600">
+            <ArrowLeft className="w-5 h-5" />
             <span className="text-[10px]">返回</span>
+          </button>
+
+          {/* 首页 */}
+          <button onClick={() => router.push("/")} className="flex flex-col items-center gap-0.5 px-1 text-gray-600 active:text-blue-600">
+            <Home className="w-5 h-5" />
+            <span className="text-[10px]">首页</span>
           </button>
         </div>
       </div>

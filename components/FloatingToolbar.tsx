@@ -125,7 +125,7 @@ export default function FloatingToolbar({
       {/* 浮动工具栏 */}
       <div
         className={`fixed top-1/2 -translate-y-1/2 z-30 flex flex-col gap-1 p-1.5 
-          bg-white/70 backdrop-blur-sm border border-gray-200/50 shadow-lg
+          bg-white/85 backdrop-blur-sm border border-gray-200/50 shadow-lg
           transition-all duration-300 ${positionClass}`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
