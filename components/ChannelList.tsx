@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useChannelFilterStore } from '@/store/useChannelFilterStore';
-import { CheckSquare, Square, Search, CheckCircle, XCircle, Info, Save } from 'lucide-react';
+import { CheckSquare, Square, Search, CheckCircle, XCircle, Info, Save, ArrowUpDown, Filter } from 'lucide-react';
 
 interface RSSSource {
   id: number;
@@ -35,6 +35,12 @@ export default function ChannelList() {
   const [pendingChanges, setPendingChanges] = useState<Set<number>>(new Set());  // 待保存的变更
   const [activeBubbleId, setActiveBubbleId] = useState<number | null>(null);  // 当前显示气泡的频道ID
   
+  // 排序和筛选状态
+  const [sortBy, setSortBy] = useState<'default' | 'articles'>('default');  // 排序方式
+  const [filterCategory, setFilterCategory] = useState<string>('');  // 分类筛选
+  const [filterLanguage, setFilterLanguage] = useState<string>('');  // 语言筛选
+  const [showFilters, setShowFilters] = useState(false);  // 显示筛选面板
+  
   // 加载所有启用的RSS源
   const { data: sources, isLoading } = useQuery<RSSSource[]>({
     queryKey: ['rss-sources-enabled'],
@@ -45,11 +51,33 @@ export default function ChannelList() {
     staleTime: 5 * 60 * 1000,  // 5分钟缓存
   });
   
-  // 过滤后的源列表（支持搜索）
-  const filteredSources = sources?.filter(s =>
-    s.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    (s.category && s.category.toLowerCase().includes(searchText.toLowerCase()))
-  ) || [];
+  // 获取所有分类和语言（用于筛选）
+  const categories = Array.from(new Set(sources?.map(s => s.category).filter((c): c is string => Boolean(c)) || [])).sort();
+  const languages = Array.from(new Set(sources?.map(s => s.language).filter((l): l is string => Boolean(l)) || [])).sort();
+  
+  // 过滤和排序后的源列表
+  const filteredSources = sources?.filter(s => {
+    // 搜索过滤
+    const matchSearch = !searchText || 
+      s.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      (s.category && s.category.toLowerCase().includes(searchText.toLowerCase()));
+    
+    // 分类筛选
+    const matchCategory = !filterCategory || s.category === filterCategory;
+    
+    // 语言筛选
+    const matchLanguage = !filterLanguage || s.language === filterLanguage;
+    
+    return matchSearch && matchCategory && matchLanguage;
+  })
+  .sort((a, b) => {
+    // 按文章数排序
+    if (sortBy === 'articles') {
+      return (b.total_articles || 0) - (a.total_articles || 0);
+    }
+    // 默认排序（保持原始顺序）
+    return 0;
+  }) || [];
   
   const enabledCount = enabledSources.length;
   const totalCount = sources?.length || 0;
@@ -99,6 +127,13 @@ export default function ChannelList() {
     
     const text = langMap[langLower] || lang.toUpperCase();
     return { text, color: 'bg-gray-100 text-gray-600' };
+  };
+  
+  // 清除所有筛选
+  const clearFilters = () => {
+    setFilterCategory('');
+    setFilterLanguage('');
+    setSortBy('default');
   };
   
   // 切换气泡显示
@@ -219,7 +254,7 @@ export default function ChannelList() {
         </div>
         
         {/* 搜索框 */}
-        <div className="relative">
+        <div className="relative mb-2">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           <input
             type="text"
@@ -229,7 +264,112 @@ export default function ChannelList() {
             className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
           />
         </div>
+        
+        {/* 筛选和排序按钮 */}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-all ${
+              showFilters || filterCategory || filterLanguage
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            <Filter className="w-3 h-3" />
+            筛选
+          </button>
+          <button
+            onClick={() => setSortBy(sortBy === 'articles' ? 'default' : 'articles')}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-all ${
+              sortBy === 'articles'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            <ArrowUpDown className="w-3 h-3" />
+            {sortBy === 'articles' ? '文章数↓' : '排序'}
+          </button>
+          {(filterCategory || filterLanguage || sortBy !== 'default') && (
+            <button
+              onClick={clearFilters}
+              className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs hover:bg-gray-300 transition-all"
+            >
+              清除
+            </button>
+          )}
+          <span className="text-[10px] text-gray-400 ml-auto">
+            显示 {filteredSources.length} / {totalCount}
+          </span>
+        </div>
       </div>
+      
+      {/* 筛选面板 */}
+      {showFilters && (
+        <div className="px-3 py-2 bg-gray-50 border-b border-gray-100 space-y-2">
+          {/* 分类筛选 */}
+          <div>
+            <div className="text-[10px] text-gray-500 mb-1">按分类筛选：</div>
+            <div className="flex flex-wrap gap-1">
+              <button
+                onClick={() => setFilterCategory('')}
+                className={`px-2 py-0.5 rounded text-[10px] transition-all ${
+                  !filterCategory
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
+                }`}
+              >
+                全部
+              </button>
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setFilterCategory(cat)}
+                  className={`px-2 py-0.5 rounded text-[10px] transition-all ${
+                    filterCategory === cat
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* 语言筛选 */}
+          <div>
+            <div className="text-[10px] text-gray-500 mb-1">按语言筛选：</div>
+            <div className="flex flex-wrap gap-1">
+              <button
+                onClick={() => setFilterLanguage('')}
+                className={`px-2 py-0.5 rounded text-[10px] transition-all ${
+                  !filterLanguage
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
+                }`}
+              >
+                全部
+              </button>
+              {languages.map(lang => {
+                const label = getLanguageLabel(lang);
+                return (
+                  <button
+                    key={lang}
+                    onClick={() => setFilterLanguage(lang)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all ${
+                      filterLanguage === lang
+                        ? 'bg-blue-500 text-white'
+                        : label.color + ' border border-transparent hover:border-blue-300'
+                    }`}
+                  >
+                    {label.text}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* 频道列表 */}
       <div className="flex-1 overflow-y-auto bg-white">
