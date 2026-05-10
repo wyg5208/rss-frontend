@@ -6,7 +6,7 @@ import SearchBar from "@/components/SearchBar";
 import CategoryTabs from "@/components/CategoryTabs";
 import ArticleList from "@/components/ArticleList";
 import LanguageFilter from "@/components/LanguageFilter";
-import { useArticles } from "@/hooks/useArticles";
+import { useArticles, useRecommendedArticles } from "@/hooks/useArticles";
 import { useTagFilterStore } from "@/store/useTagFilterStore";
 import { useArticleNavStore } from "@/store/useArticleNavStore";
 import { useAutoFilter } from "@/hooks/useAutoFilter";
@@ -58,10 +58,33 @@ function HomeContent() {
     return f;
   }, [activeTab, urlTag, selectedTags, languageFilter]);
 
+  // 两个Hook都调用（遵循React Hook规则：不能条件性调用Hook）
+  // 通过数据选择切换，activeTab === "推荐" 时使用推荐数据
+  const { data: recommendPages, fetchNextPage: fetchNextPageRecommend, 
+          hasNextPage: hasNextPageRecommend, isFetchingNextPage: isFetchingNextPageRecommend, 
+          isFetching: isFetchingRecommend, isLoading: isLoadingRecommend } = useRecommendedArticles();
+  
   const { data: pages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, isLoading } = useArticles(filters);
 
   // 原始文章列表
-  const articles = useMemo(() => pages?.pages.flat() || [], [pages]);
+  const articles = useMemo(() => {
+    // "推荐"Tab使用推荐API数据，其他Tab使用筛选API数据
+    if (activeTab === "推荐" && recommendPages) {
+      return recommendPages.pages.flat();
+    }
+    return pages?.pages.flat() || [];
+  }, [activeTab, pages, recommendPages]);
+  
+  // 推荐Tab和其他Tab的加载状态
+  const isLoadingArticles = activeTab === "推荐" 
+    ? (isFetchingNextPageRecommend || isFetchingRecommend || isLoadingRecommend)
+    : (isFetchingNextPage || isFetching || isLoading);
+  
+  const hasMoreArticles = activeTab === "推荐" ? hasNextPageRecommend : hasNextPage;
+  
+  const loadMoreArticles = activeTab === "推荐" 
+    ? fetchNextPageRecommend 
+    : fetchNextPage;
   
   // 应用自动屏蔽过滤
   const { filteredArticles } = useAutoFilter(articles);
@@ -101,9 +124,9 @@ function HomeContent() {
       <div className="flex-1 pb-14">
         <ArticleList
           articles={filteredArticles}
-          loading={isFetchingNextPage || isFetching || isLoading}
-          hasMore={!!hasNextPage}
-          onLoadMore={() => fetchNextPage()}
+          loading={isLoadingArticles}
+          hasMore={!!hasMoreArticles}
+          onLoadMore={() => loadMoreArticles()}
           emptyText={selectedTags.length > 0 ? "暂无符合筛选条件的文章" : "暂无文章"}
           onArticleNavigate={handleArticleNavigate}
         />

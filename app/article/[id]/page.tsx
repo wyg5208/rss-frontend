@@ -312,14 +312,14 @@ export default function ArticleDetailPage() {
             />
           )}
           
-          {/* 原文摘要（如果有） */}
-          {a.summary && !bilingualOn && (
+          {/* 原文摘要（始终显示，如果有） */}
+          {a.summary && (
             <div className="mb-4 p-3 bg-gray-50 rounded-lg border-l-4 border-gray-300">
               <p className="text-sm text-gray-600 leading-relaxed">{a.summary}</p>
             </div>
           )}
           
-          {/* 双语摘要（替换原文摘要） */}
+          {/* 双语摘要（开启双语时，在原文摘要下方显示翻译） */}
           {bilingualOn && translatedData?.translated_summary && (
             <TranslatedText
               translatedText={translatedData.translated_summary}

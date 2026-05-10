@@ -54,3 +54,34 @@ export function useArticles(filters: ArticleFilters = {}) {
 
   return query;
 }
+
+/**
+ * 推荐文章专用Hook
+ * 
+ * v2.7.0新增
+ * 用于"推荐"Tab，从后端推荐API获取个性化推荐或冷启动推荐
+ * 返回格式与useArticles一致，兼容InfiniteQuery
+ */
+export function useRecommendedArticles() {
+  return useInfiniteQuery<Article[]>({
+    queryKey: ["articles", "recommended"],
+    queryFn: async ({ pageParam = 0 }) => {
+      // 推荐API已与列表API返回格式统一，直接返回数组
+      const path = buildQuery("/rss/articles/recommended", {
+        skip: Number(pageParam),
+        limit: PAGE_SIZE,
+      });
+      return api.get<Article[]>(path);
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage || lastPage.length < PAGE_SIZE) return undefined;
+      if (allPages.length >= MAX_PAGES) return undefined;
+      return allPages.length * PAGE_SIZE;
+    },
+    initialPageParam: 0,
+    staleTime: 30 * 60 * 1000,  // 30分钟，与后端推荐缓存TTL一致
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+    retryDelay: 2000,
+  });
+}
