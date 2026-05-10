@@ -14,6 +14,7 @@ import {
   Tag,
   RefreshCw,
   EyeOff,
+  Radio,
 } from "lucide-react";
 
 export default function MePage() {
@@ -24,6 +25,7 @@ export default function MePage() {
   const [readCount, setReadCount] = useState(0);
   const [subCount, setSubCount] = useState(0);
   const [blockedCount, setBlockedCount] = useState(0);
+  const [channelCount, setChannelCount] = useState(0);
   const [statsLoading, setStatsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -59,6 +61,14 @@ export default function MePage() {
             total: number;
           }>("/user/blocks?page=1&size=1");
           setBlockedCount(blocksData.total || 0);
+        } catch {
+          // 忽略错误
+        }
+        
+        // 获取频道统计
+        try {
+          const channelData = await api.get<{ total_enabled_sources: number }>("/user/channels/stats");
+          setChannelCount(channelData.total_enabled_sources || 0);
         } catch {
           // 忽略错误
         }
@@ -205,6 +215,15 @@ export default function MePage() {
           <EyeOff className="w-5 h-5 text-gray-500 mr-3" />
           <span className="flex-1 text-[15px]">忽略文章</span>
           <span className="text-xs text-gray-400 mr-1">{statsLoading ? "-" : blockedCount}篇</span>
+          <ChevronRight className="w-4 h-4 text-gray-300" />
+        </Link>
+        <Link
+          href="/subscribe?tab=channels"
+          className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
+        >
+          <Radio className="w-5 h-5 text-green-500 mr-3" />
+          <span className="flex-1 text-[15px]">我的频道</span>
+          <span className="text-xs text-gray-400 mr-1">{statsLoading ? "-" : channelCount}个</span>
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </Link>
         <Link

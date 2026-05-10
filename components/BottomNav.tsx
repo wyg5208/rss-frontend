@@ -6,7 +6,7 @@ import { Home, Compass, UserCircle } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/", label: "首页", icon: Home },
-  { href: "/subscribe", label: "关注", icon: Compass },
+  { href: "/subscribe", label: "阅读管理", icon: Compass },
   { href: "/me", label: "我的", icon: UserCircle },
 ];
 

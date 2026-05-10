@@ -6,7 +6,8 @@ import { useTags } from "@/hooks/useTags";
 import { useArticleStore } from "@/store/useArticleStore";
 import { useTagFilterStore } from "@/store/useTagFilterStore";
 import ArticleCard from "@/components/ArticleCard";
-import { Heart, Clock, Tag, X, ArrowUpDown, Layers } from "lucide-react";
+import { Heart, Clock, Tag, X, ArrowUpDown, Layers, Radio } from "lucide-react";
+import ChannelList from "@/components/ChannelList";
 import clsx from "clsx";
 
 // 前端分类映射：覆盖后端 tag.category，将标签重新归类
@@ -68,7 +69,7 @@ function getTagCategory(tag: { name: string; category?: string }): string {
   return TAG_CATEGORY_MAP[tag.name] || TAG_CATEGORY_MAP[tag.name.toLowerCase()] || "其他";
 }
 
-type Tab = "favorites" | "history" | "tags";
+type Tab = "channels" | "favorites" | "history" | "tags";
 
 export default function SubscribePage() {
   const router = useRouter();
@@ -83,10 +84,11 @@ export default function SubscribePage() {
 
   useEffect(() => {
     const t = searchParams.get("tab");
-    if (t === "favorites" || t === "history" || t === "tags") setTab(t);
+    if (t === "channels" || t === "favorites" || t === "history" || t === "tags") setTab(t);
   }, [searchParams]);
 
   const tabs: { key: Tab; label: string; icon: typeof Heart }[] = [
+    { key: "channels", label: "频道", icon: Radio },
     { key: "tags", label: "标签", icon: Tag },
     { key: "favorites", label: "收藏", icon: Heart },
     { key: "history", label: "历史", icon: Clock },
@@ -164,6 +166,7 @@ export default function SubscribePage() {
         </div>
       </header>
       <div className="flex-1 pb-14">
+        {tab === "channels" && <ChannelList />}
         {tab === "tags" && (
           <div>
             {/* 选中标签预览区 */}

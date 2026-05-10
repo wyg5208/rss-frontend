@@ -3,6 +3,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { api, buildQuery } from "@/lib/api";
 import type { Article } from "@/types";
+import { useChannelFilterStore } from "@/store/useChannelFilterStore";
 
 // Phase 3: PAGE_SIZE从10改为20，减少API往返次数
 const PAGE_SIZE = 20;
@@ -22,8 +23,10 @@ interface ArticleFilters {
 }
 
 export function useArticles(filters: ArticleFilters = {}) {
+  const { enabledSources } = useChannelFilterStore();
+  
   const query = useInfiniteQuery<Article[]>({
-    queryKey: ["articles", filters],
+    queryKey: ["articles", filters, enabledSources],
     queryFn: async ({ pageParam = 0 }) => {
       const params: Record<string, string | number | boolean | undefined> = {
         skip: Number(pageParam),
@@ -32,6 +35,12 @@ export function useArticles(filters: ArticleFilters = {}) {
         sort_order: "desc",
         ...filters,
       };
+      
+      // 添加频道过滤参数（空数组表示不过滤，显示所有频道）
+      if (enabledSources && enabledSources.length > 0) {
+        params.enabled_source_ids = enabledSources.join(',');
+      }
+      
       const path = buildQuery("/rss/articles/", params);
       return api.get<Article[]>(path);
     },
