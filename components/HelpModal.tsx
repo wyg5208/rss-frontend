@@ -56,7 +56,7 @@ export default function HelpModal({ isOpen, onClose }: Props) {
                 <h4 className="font-semibold text-[#3d3225]">1. 摘要栏目（默认首页）</h4>
                 <p className="text-[#6b5d4f] ml-4">• 显示所有有AI中文摘要的文章</p>
                 <p className="text-[#6b5d4f] ml-4">• 固定3行显示，点击摘要文字可展开/收起</p>
-                <p className="text-[#6b5d4f] ml-4">• 点击"原文"按钮跳转详情页，返回后自动隐藏（阅后即焚）</p>
+                <p className="text-[#6b5d4f] ml-4">• 点击&quot;原文&quot;按钮跳转详情页，返回后自动隐藏（阅后即焚）</p>
               </div>
               <div>
                 <h4 className="font-semibold text-[#3d3225]">2. 栏目TAB切换</h4>
@@ -88,7 +88,7 @@ export default function HelpModal({ isOpen, onClose }: Props) {
             <div className="space-y-2 text-sm text-[#6b5d4f]">
               <p><strong>快速浏览模式：</strong>在摘要栏目中，只需看AI摘要即可掌握要点，感兴趣再点原文</p>
               <p><strong>高效阅读流：</strong>摘要 → 原文 → 自动消失 → 下一篇文章，形成高效阅读循环</p>
-              <p><strong>个性化定制：</strong>在"我的"页面管理账户，在"阅读管理"中配置栏目显示</p>
+              <p><strong>个性化定制：</strong>在&quot;我的&quot;页面管理账户，在&quot;阅读管理&quot;中配置栏目显示</p>
               <p><strong>标签管理：</strong>为文章添加标签，方便后续按主题筛选</p>
               <p><strong>滑动切换：</strong>在首页左右滑动手指，快速切换不同栏目</p>
             </div>
@@ -98,7 +98,7 @@ export default function HelpModal({ isOpen, onClose }: Props) {
           <section>
             <h3 className="text-lg font-bold text-[#c45a3c] mb-3">⚙️ 栏目配置</h3>
             <div className="space-y-2 text-sm text-[#6b5d4f]">
-              <p>进入<strong>"阅读管理"</strong>页面，您可以：</p>
+              <p>进入<strong>&quot;阅读管理&quot;</strong>页面，您可以：</p>
               <ul className="list-disc list-inside space-y-1 ml-2">
                 <li>添加/删除显示的栏目TAB</li>
                 <li>调整栏目顺序（拖拽排序）</li>
@@ -118,7 +118,7 @@ export default function HelpModal({ isOpen, onClose }: Props) {
                 <p className="text-[#6b5d4f]">展开/收起全文</p>
               </div>
               <div className="bg-[#f5f1e8] p-3 rounded">
-                <p className="font-semibold text-[#3d3225]">点击"原文"</p>
+                <p className="font-semibold text-[#3d3225]">点击&quot;原文"</p>
                 <p className="text-[#6b5d4f]">跳转详情页</p>
               </div>
               <div className="bg-[#f5f1e8] p-3 rounded">
@@ -138,8 +138,8 @@ export default function HelpModal({ isOpen, onClose }: Props) {
             <ul className="space-y-1 text-sm text-[#6b5d4f]">
               <li>• 建议先浏览AI摘要，再决定是否阅读原文，提高阅读效率</li>
               <li>• 阅后即焚功能让已读文章不干扰后续阅读，保持列表清爽</li>
-              <li>• 定期查看"推荐"TAB，发现可能感兴趣的新内容</li>
-              <li>• 遇到问题可在"我的"页面反馈，我们会持续优化体验</li>
+              <li>• 定期查看&quot;推荐&quot;TAB，发现可能感兴趣的新内容</li>
+              <li>• 遇到问题可在&quot;我的&quot;页面反馈，我们会持续优化体验</li>
             </ul>
           </section>
         </div>

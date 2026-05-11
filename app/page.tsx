@@ -270,7 +270,7 @@ function HomeContent() {
     //   });
     // }
     return listArticles;
-  }, [activeTab, pages, recommendPages]);
+  }, [activeTab, pages, recommendPages, summaryPages]);
   
   // 推荐Tab、摘要Tab和其他Tab的加载状态
   const isLoadingArticles = (activeTab === '推荐' || activeTab === '') 

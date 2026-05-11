@@ -188,7 +188,7 @@ export default function TabConfigPanel() {
             <div className="px-3 pb-2 text-[10px] text-gray-400">所有更改已保存</div>
           )}
           {hasUnsavedChanges && (
-            <div className="px-3 pb-2 text-[10px] text-orange-500">有未保存的更改，点击"保存配置"同步到云端</div>
+            <div className="px-3 pb-2 text-[10px] text-orange-500">有未保存的更改，点击&quot;保存配置&quot;同步到云端</div>
           )}
           
           {/* 卡片内容区 */}

@@ -21,7 +21,7 @@ export default function SummaryCard({ article, onNavigate }: Props) {
   const timeAgo = article.published_at ? dayjs(article.published_at).fromNow() : "";
 
   // 使用AI摘要字段
-  const aiSummary = (article as any).ai_summary || article.summary;
+  const aiSummary = (article as unknown as Record<string, unknown>).ai_summary as string | undefined || article.summary;
 
   const handleClick = () => {
     if (onNavigate) {
