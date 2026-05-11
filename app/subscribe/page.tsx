@@ -8,6 +8,7 @@ import { useTagFilterStore } from "@/store/useTagFilterStore";
 import ArticleCard from "@/components/ArticleCard";
 import { Heart, Clock, Tag, X, ArrowUpDown, Layers, Radio } from "lucide-react";
 import ChannelList from "@/components/ChannelList";
+import TabConfigPanel from "@/components/TabConfigPanel";
 import clsx from "clsx";
 
 // 前端分类映射：覆盖后端 tag.category，将标签重新归类
@@ -69,12 +70,12 @@ function getTagCategory(tag: { name: string; category?: string }): string {
   return TAG_CATEGORY_MAP[tag.name] || TAG_CATEGORY_MAP[tag.name.toLowerCase()] || "其他";
 }
 
-type Tab = "channels" | "favorites" | "history" | "tags";
+type Tab = "tab_config" | "channels" | "favorites" | "history" | "tags";
 
 export default function SubscribePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [tab, setTab] = useState<Tab>("tags");
+  const [tab, setTab] = useState<Tab>("tab_config");  // 默认显示栏目TAB
   const { data: tags } = useTags(500); // 后端限制最大500
   const { favorites, readHistory } = useArticleStore();
   const { selectedTags, toggleTag, clearAllTags } = useTagFilterStore();
@@ -84,10 +85,11 @@ export default function SubscribePage() {
 
   useEffect(() => {
     const t = searchParams.get("tab");
-    if (t === "channels" || t === "favorites" || t === "history" || t === "tags") setTab(t);
+    if (t === "tab_config" || t === "channels" || t === "favorites" || t === "history" || t === "tags") setTab(t);
   }, [searchParams]);
 
   const tabs: { key: Tab; label: string; icon: typeof Heart }[] = [
+    { key: "tab_config", label: "栏目", icon: Layers },
     { key: "channels", label: "频道", icon: Radio },
     { key: "tags", label: "标签", icon: Tag },
     { key: "favorites", label: "收藏", icon: Heart },
@@ -166,6 +168,7 @@ export default function SubscribePage() {
         </div>
       </header>
       <div className="flex-1 pb-14">
+        {tab === "tab_config" && <TabConfigPanel />}
         {tab === "channels" && <ChannelList />}
         {tab === "tags" && (
           <div>
@@ -175,6 +178,9 @@ export default function SubscribePage() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-blue-600 font-medium">
                     已选择 {selectedTags.length} 个标签
+                  </span>
+                  <span className="text-[10px] text-blue-400">
+                    标签筛选仅对&ldquo;推荐&rdquo;和&ldquo;全部&rdquo;栏目生效
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1">
