@@ -82,14 +82,14 @@ export default function HelpModal({ isOpen, onClose }: Props) {
               </div>
               <div>
                 <h4 className="font-semibold text-[#3d3225]">5. 文章详情页悬浮工具栏 ✨</h4>
-                <p className="text-[#6b5d4f] ml-4">• 文章详情页左侧提供7个快捷操作图标：</p>
+                <p className="text-[#6b5d4f] ml-4">• 文章详情页左侧提供7个快捷操作图标（支持拖拽到右侧）：</p>
+                <p className="text-[#6b5d4f] ml-4">  - <strong>✨ AI摘要</strong>：生成/显示/隐藏AI智能摘要</p>
+                <p className="text-[#6b5d4f] ml-4">  - <strong>🌐 双语阅读</strong>：开启/关闭中英文对照阅读模式</p>
+                <p className="text-[#6b5d4f] ml-4">  - <strong>🔗 原文</strong>：跳转到原始文章链接</p>
+                <p className="text-[#6b5d4f] ml-4">  - <strong>⬆️ 上一篇</strong>：切换到列表中的上一篇文章</p>
+                <p className="text-[#6b5d4f] ml-4">  - <strong>⬇️ 下一篇</strong>：切换到列表中的下一篇文章</p>
                 <p className="text-[#6b5d4f] ml-4">  - <strong>❤️ 收藏</strong>：收藏文章，稍后阅读</p>
-                <p className="text-[#6b5d4f] ml-4">  - <strong>👁️ 已读/未读</strong>：切换文章阅读状态</p>
                 <p className="text-[#6b5d4f] ml-4">  - <strong>🚫 不看</strong>：加入不看列表（黑名单），类似文章自动隐藏</p>
-                <p className="text-[#6b5d4f] ml-4">  - <strong>🌐 原文</strong>：跳转到原始文章链接</p>
-                <p className="text-[#6b5d4f] ml-4">  - <strong>🔗 分享</strong>：复制文章链接分享给好友</p>
-                <p className="text-[#6b5d4f] ml-4">  - <strong>🔄 刷新</strong>：重新加载文章内容</p>
-                <p className="text-[#6b5d4f] ml-4">  - <strong>⬆️ 返回顶部</strong>：快速回到文章开头</p>
               </div>
             </div>
           </section>
