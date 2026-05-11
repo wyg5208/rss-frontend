@@ -248,10 +248,19 @@ export const useTabConfigStore = create<TabConfigState>()(
        */
       loadFromBackend: async () => {
         try {
+          // 检查token是否存在
+          const authStorage = typeof window !== 'undefined' ? localStorage.getItem('rss-auth-storage') : null;
+          if (!authStorage) {
+            console.log('[TabConfig] 未登录，跳过从后端加载配置');
+            return; // 未登录，不加载
+          }
+          
           const data = await api.get<{
             fixed_tabs: Array<{ tab_value: string; display_order: number; is_visible: boolean }>;
             rss_source_tabs: Array<{ tab_value: string; display_order: number; is_visible: boolean }>;
           }>('/user/tabs/');
+          
+          console.log('[TabConfig] 从后端加载配置成功:', data);
           
           // 1. 合并后端固定TAB配置与默认配置
           const backendFixedMap = new Map(data.fixed_tabs.map(t => [t.tab_value, t]));
@@ -284,7 +293,12 @@ export const useTabConfigStore = create<TabConfigState>()(
             ...newState,
             lastSavedState: getStateSnapshot(newState),
           });
-        } catch (error) {
+        } catch (error: any) {
+          // 401表示未登录，静默处理
+          if (error?.status === 401) {
+            console.log('[TabConfig] 未登录，使用localStorage配置');
+            return;
+          }
           console.error('加载TAB配置失败:', error);
           // 加载失败保持当前localStorage中的配置
         }

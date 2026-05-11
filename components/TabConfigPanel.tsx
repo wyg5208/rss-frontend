@@ -37,7 +37,28 @@ export default function TabConfigPanel() {
   // 组件挂载时从后端加载配置（多设备同步）
   useEffect(() => {
     const loadConfig = async () => {
+      // 等待token加载完成（最多等待3秒）
+      let attempts = 0;
+      const maxAttempts = 30; // 30 * 100ms = 3秒
+      
+      while (attempts < maxAttempts) {
+        const authStorage = typeof window !== 'undefined' ? localStorage.getItem('rss-auth-storage') : null;
+        if (authStorage) {
+          break; // token已就绪
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      
+      // 检查是否有token
+      const authStorage = typeof window !== 'undefined' ? localStorage.getItem('rss-auth-storage') : null;
+      if (!authStorage) {
+        console.log('[TabConfig] 未登录，跳过从后端加载配置');
+        return;
+      }
+      
       try {
+        console.log('[TabConfig] 开始从后端加载配置...');
         await loadFromBackend();
       } catch (error) {
         console.error('加载TAB配置失败:', error);
