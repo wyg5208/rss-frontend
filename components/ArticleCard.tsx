@@ -62,9 +62,14 @@ export default function ArticleCard({ article, onBeforeNavigate }: Props) {
             <span>·</span>
             {timeAgo && <span>{timeAgo}</span>}
             {article.view_count > 0 && <><span>·</span><span>{article.view_count}阅读</span></>}
-            {article.tags?.slice(0, 1).map((tag) => (
-              <span key={tag} className="ml-1 text-[11px] px-1.5 py-0.5 bg-[#f0e6d2] text-[#8b6914] rounded-sm">{tag}</span>
-            ))}
+            {article.tags?.slice(0, 1).map((tag) => {
+              const truncatedTag = tag.length > 20 ? tag.substring(0, 20) + '...' : tag;
+              return (
+                <span key={tag} className="ml-1 text-[11px] px-1.5 py-0.5 bg-[#f0e6d2] text-[#8b6914] rounded-sm truncate max-w-[120px]" title={tag}>
+                  {truncatedTag}
+                </span>
+              );
+            })}
           </div>
         </article>
       )}
