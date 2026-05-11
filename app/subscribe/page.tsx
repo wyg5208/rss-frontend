@@ -137,7 +137,6 @@ export default function SubscribePage() {
     <div className="flex flex-col min-h-screen bg-[#f5f1e8]">
       <header className="sticky top-0 z-30 bg-[#faf7f0] border-b border-[#e8e0d0] safe-top">
         <div className="h-[52px] flex items-center px-4">
-          <h1 className="text-lg font-bold text-[#3d3225]">关注</h1>
           {selectedTags.length > 0 && tab === 'tags' && (
             <div className="ml-auto flex items-center gap-2">
               <button
