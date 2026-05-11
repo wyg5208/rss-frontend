@@ -69,6 +69,7 @@ export default function HelpModal({ isOpen, onClose }: Props) {
               <div>
                 <h4 className="font-semibold text-[#3d3225]">3. 智能阅读体验</h4>
                 <p className="text-[#6b5d4f] ml-4">• <strong>阅后即焚</strong>：点击原文阅读后，文章自动从列表消失</p>
+                <p className="text-[#6b5d4f] ml-4">• <strong>重要说明</strong>：文章并未真正删除，只是标记为已读，可在&quot;我的 - 阅读历史&quot;中查看</p>
                 <p className="text-[#6b5d4f] ml-4">• <strong>自动补位</strong>：隐藏后下方文章自动上移，无缝衔接</p>
                 <p className="text-[#6b5d4f] ml-4">• <strong>位置记忆</strong>：返回列表时保持之前的滚动位置</p>
                 <p className="text-[#6b5d4f] ml-4">• <strong>无限滚动</strong>：滚动到底部自动加载更多内容</p>
@@ -78,6 +79,17 @@ export default function HelpModal({ isOpen, onClose }: Props) {
                 <p className="text-[#6b5d4f] ml-4">• 搜索栏：关键词搜索标题和摘要</p>
                 <p className="text-[#6b5d4f] ml-4">• 语言过滤：中文/英文/其他语言切换</p>
                 <p className="text-[#6b5d4f] ml-4">• 标签筛选：点击标签查看相关文章</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-[#3d3225]">5. 文章详情页悬浮工具栏 ✨</h4>
+                <p className="text-[#6b5d4f] ml-4">• 文章详情页左侧提供7个快捷操作图标：</p>
+                <p className="text-[#6b5d4f] ml-4">  - <strong>❤️ 收藏</strong>：收藏文章，稍后阅读</p>
+                <p className="text-[#6b5d4f] ml-4">  - <strong>👁️ 已读/未读</strong>：切换文章阅读状态</p>
+                <p className="text-[#6b5d4f] ml-4">  - <strong>🚫 不看</strong>：加入不看列表（黑名单），类似文章自动隐藏</p>
+                <p className="text-[#6b5d4f] ml-4">  - <strong>🌐 原文</strong>：跳转到原始文章链接</p>
+                <p className="text-[#6b5d4f] ml-4">  - <strong>🔗 分享</strong>：复制文章链接分享给好友</p>
+                <p className="text-[#6b5d4f] ml-4">  - <strong>🔄 刷新</strong>：重新加载文章内容</p>
+                <p className="text-[#6b5d4f] ml-4">  - <strong>⬆️ 返回顶部</strong>：快速回到文章开头</p>
               </div>
             </div>
           </section>
@@ -94,22 +106,54 @@ export default function HelpModal({ isOpen, onClose }: Props) {
             </div>
           </section>
 
-          {/* 栏目配置 */}
+          {/* 阅读管理 */}
           <section>
-            <h3 className="text-lg font-bold text-[#c45a3c] mb-3">⚙️ 栏目配置</h3>
-            <div className="space-y-2 text-sm text-[#6b5d4f]">
-              <p>进入<strong>&quot;阅读管理&quot;</strong>页面，您可以：</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>添加/删除显示的栏目TAB</li>
-                <li>调整栏目顺序（拖拽排序）</li>
-                <li>配置RSS源订阅</li>
-                <li>设置默认显示的栏目</li>
-              </ul>
+            <h3 className="text-lg font-bold text-[#c45a3c] mb-3">⚙️ 阅读管理</h3>
+            <div className="space-y-3 text-sm text-[#6b5d4f]">
+              <p>进入<strong>&quot;阅读管理&quot;</strong>页面，包含5个子功能：</p>
+              
+              <div className="ml-4 space-y-2">
+                <div>
+                  <p className="font-semibold text-[#3d3225]">1) 栏目配置</p>
+                  <p>• 添加/删除显示的栏目TAB</p>
+                  <p>• 调整栏目顺序（拖拽排序）</p>
+                  <p>• 设置默认显示的栏目</p>
+                </div>
+                
+                <div>
+                  <p className="font-semibold text-[#3d3225]">2) 阅读历史</p>
+                  <p>• 查看所有已读文章列表</p>
+                  <p>• 阅后即焚的文章也会保存在这里</p>
+                  <p>• 支持点击重新阅读</p>
+                </div>
+                
+                <div>
+                  <p className="font-semibold text-[#3d3225]">3) 我的收藏</p>
+                  <p>• 收藏的精华文章集中管理</p>
+                  <p>• 在文章详情页点击❤️图标收藏</p>
+                  <p>• 支持取消收藏操作</p>
+                </div>
+                
+                <div>
+                  <p className="font-semibold text-[#3d3225]">4) 不看列表（黑名单）</p>
+                  <p>• 管理被标记为&quot;不看&quot;的文章</p>
+                  <p>• 黑名单文章会自动从列表中隐藏</p>
+                  <p>• 可从中移除，恢复显示</p>
+                </div>
+                
+                <div>
+                  <p className="font-semibold text-[#3d3225]">5) RSS源管理</p>
+                  <p>• 配置RSS源订阅</p>
+                  <p>• 查看RSS源更新状态</p>
+                  <p>• 管理RSS源筛选规则</p>
+                </div>
+              </div>
+              
               <p className="mt-2 text-[#8b7355] italic">提示：登录账号后，配置会自动同步到所有设备</p>
             </div>
           </section>
 
-          {/* 快捷键 */}
+          {/* 操作要点 */}
           <section>
             <h3 className="text-lg font-bold text-[#c45a3c] mb-3">⌨️ 操作要点</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
@@ -118,7 +162,7 @@ export default function HelpModal({ isOpen, onClose }: Props) {
                 <p className="text-[#6b5d4f]">展开/收起全文</p>
               </div>
               <div className="bg-[#f5f1e8] p-3 rounded">
-                <p className="font-semibold text-[#3d3225]">点击&quot;原文"</p>
+                <p className="font-semibold text-[#3d3225]">点击&quot;原文&quot;</p>
                 <p className="text-[#6b5d4f]">跳转详情页</p>
               </div>
               <div className="bg-[#f5f1e8] p-3 rounded">
@@ -128,6 +172,45 @@ export default function HelpModal({ isOpen, onClose }: Props) {
               <div className="bg-[#f5f1e8] p-3 rounded">
                 <p className="font-semibold text-[#3d3225]">滚动到底</p>
                 <p className="text-[#6b5d4f]">自动加载更多</p>
+              </div>
+            </div>
+          </section>
+
+          {/* 我的页面 */}
+          <section>
+            <h3 className="text-lg font-bold text-[#c45a3c] mb-3">👤 我的</h3>
+            <div className="space-y-3 text-sm text-[#6b5d4f]">
+              <p>进入<strong>&quot;我的&quot;</strong>页面，包含以下功能：</p>
+              
+              <div className="ml-4 space-y-2">
+                <div>
+                  <p className="font-semibold text-[#3d3225]">1) 账户管理</p>
+                  <p>• 登录/注册账号</p>
+                  <p>• 查看账户信息</p>
+                  <p>• 退出登录</p>
+                </div>
+                
+                <div>
+                  <p className="font-semibold text-[#3d3225]">2) 数据统计</p>
+                  <p>• 阅读文章数量统计</p>
+                  <p>• 收藏文章数量</p>
+                  <p>• 使用时长统计</p>
+                </div>
+                
+                <div>
+                  <p className="font-semibold text-[#3d3225]">3) 设置</p>
+                  <p>• <strong>清除缓存</strong>：清理本地缓存数据，释放存储空间</p>
+                  <p>• <strong>通知设置</strong>：管理推送通知偏好</p>
+                  <p>• <strong>语言设置</strong>：切换应用显示语言</p>
+                  <p>• <strong>主题设置</strong>：未来将支持深色模式</p>
+                </div>
+                
+                <div>
+                  <p className="font-semibold text-[#3d3225]">4) 帮助与反馈</p>
+                  <p>• 查看使用手册（就是当前页面）</p>
+                  <p>• 提交问题反馈</p>
+                  <p>• 查看版本信息</p>
+                </div>
               </div>
             </div>
           </section>
