@@ -1,9 +1,81 @@
 # RSS 新闻移动端前端
 
-**版本**: v2.9.0  
+**版本**: v3.0.0  
 **更新日期**: 2026 年 5 月 11 日
 
 这是一个基于 Next.js 的 RSS 新闻移动端前端项目，提供现代化的新闻阅读体验。
+
+## 最新版本 (v3.0.0)
+
+**发布日期**: 2026-05-11
+
+### 摘要TAB功能全面优化与使用手册系统 📖
+
+#### 摘要TAB优化 🎯
+- ✅ 摘要TAB移至最左侧第一个位置
+- ✅ 默认显示摘要TAB（页面加载即显示）
+- ✅ 使用AI中文摘要字段（ai_summary）
+- ✅ 固定3行显示，点击摘要文字展开/收起
+- ✅ 移除“显示全部”按钮，节省空间
+- ✅ 底部增加“原文”标签（暖橙色按钮）
+- ✅ 阅后即焚功能（点击原文后返回自动消失）
+- ✅ 自动补位（隐藏后下方文章自动上移）
+
+#### 智能加载系统 ⚡
+- ✅ IntersectionObserver实现70%滚动位置预加载
+- ✅ 每看10条自动加载10条
+- ✅ 无限滚动，流畅阅读体验
+- ✅ 加载指示器和空状态处理
+
+#### 使用手册系统 💡
+- ✅ 标题栏右上角添加帮助图标（圆形信息图标）
+- ✅ 点击弹出详细使用手册弹窗
+- ✅ 包含：产品特点、核心功能、使用技巧、操作要点
+- ✅ 米黄色配色，响应式设计，移动端友好
+
+#### 新增组件 📦
+- ✅ SummaryCard - 专用摘要卡片组件
+- ✅ SummaryArticleList - 摘要列表组件（智能加载）
+- ✅ HelpModal - 使用手册弹窗组件
+- ✅ useSummaryArticles Hook - 摘要文章数据获取
+
+#### 代码质量提升 🧹
+- ✅ 清理所有调试日志（console.log）
+- ✅ 优化组件结构和代码复用
+- ✅ 增强错误处理和降级方案
+
+### 技术改进
+- 📝 修正筛选逻辑：has_summary筛选ai_summary而非summary
+- 📝 使用IntersectionObserver实现高性能预加载
+- 📝 优化移动端交互（点击展开替代按钮）
+- 🎨 统一米黄色配色方案
+
+---
+
+## 最新版本 (v2.9.1)
+
+**发布日期**: 2026-05-11
+
+### 修复Vercel rewrite丢失Authorization header问题 🔧
+
+#### 问题描述
+- ❌ 栏目配置保存后刷新丢失
+- ❌ GET请求未携带Authorization header
+- ❌ 后端user_id=None返回空配置
+
+#### 根本原因
+- Vercel Edge Network在rewrite跨域转发时删除敏感headers
+- 前端使用相对路径依赖Vercel rewrite导致认证失败
+
+#### 解决方案
+- ✅ 生产环境使用完整API URL（https://madechango.com）
+- ✅ 绕过Vercel rewrite，浏览器直接请求API域名
+- ✅ 添加详细诊断日志便于后续排查
+
+#### 经验教训
+- 📝 认证问题第一时间检查后端收到的完整headers
+- 📝 理解Vercel rewrite的安全策略（删除敏感headers）
+- 📝 避免依赖rewrite转发认证请求
 
 ## 最新版本 (v2.9.0)
 
@@ -239,6 +311,24 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## 版本历史
 
+### v3.0.0 (2026-05-11)
+- ✅ 摘要TAB移至最左侧并设为默认显示
+- ✅ 使用AI中文摘要字段（ai_summary）
+- ✅ 固定3行显示，点击展开/收起
+- ✅ 底部增加“原文”标签
+- ✅ 阅后即焚和自动补位功能
+- ✅ 智能预加载系统（70%位置触发）
+- ✅ 添加使用手册弹窗和帮助图标
+- ✅ 创建SummaryCard、SummaryArticleList、HelpModal组件
+- ✅ 清理所有调试日志
+
+### v2.9.1 (2026-05-11)
+- ✅ 修复Vercel rewrite丢失Authorization header问题
+- ✅ 生产环境使用完整API URL避免认证失败
+- ✅ 添加详细诊断日志便于排查认证问题
+- ✅ 优化栏目配置刷新丢失问题
+- 📝 总结Vercel rewrite安全策略与排查经验
+
 ### v2.9.0 (2026-05-11)
 - ✅ 修复推荐TAB和全部TAB内容相同问题
 - ✅ 推荐API支持tags参数标签筛选
@@ -307,4 +397,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## 当前版本
 
-**当前版本**: v2.9.0
+**当前版本**: v2.9.1

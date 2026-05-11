@@ -6,14 +6,17 @@ import { useQuery } from "@tanstack/react-query";
 import SearchBar from "@/components/SearchBar";
 import CategoryTabs from "@/components/CategoryTabs";
 import ArticleList from "@/components/ArticleList";
+import SummaryArticleList from "@/components/SummaryArticleList";
 import LanguageFilter from "@/components/LanguageFilter";
 import { useArticles, useRecommendedArticles } from "@/hooks/useArticles";
+import { useSummaryArticles } from "@/hooks/useSummaryArticles";
 import { useTagFilterStore } from "@/store/useTagFilterStore";
 import { useArticleNavStore } from "@/store/useArticleNavStore";
 import { useAutoFilter } from "@/hooks/useAutoFilter";
 import { useTabConfigStore } from "@/store/useTabConfigStore";
 import type { TabItem } from "@/components/CategoryTabs";
 import { api } from "@/lib/api";
+import HelpModal from "@/components/HelpModal";
 
 // 固定中文分类Tab，对应后端 tag_category 筛选
 const CATEGORY_TABS = [
@@ -52,8 +55,59 @@ function HomeContent() {
   });
   
   const [activeTab, setActiveTab] = useState(
-    urlTag ? decodeURIComponent(urlTag) : "推荐"
+    urlTag ? decodeURIComponent(urlTag) : "summary" // 默认显示摘要TAB
   );
+  
+  // 帮助弹窗状态
+  const [showHelp, setShowHelp] = useState(false);
+  
+  // 触摸滑动相关状态
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchEndX, setTouchEndX] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const minSwipeDistance = 50; // 最小滑动距离（px）
+  
+  // 触摸开始
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchEndX(e.touches[0].clientX);
+    setIsSwiping(true);
+    setSwipeOffset(0);
+  };
+  
+  // 触摸移动
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isSwiping) return;
+    const currentX = e.touches[0].clientX;
+    setTouchEndX(currentX);
+    setSwipeOffset(touchStartX - currentX);
+  };
+  
+  // 触摸结束
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    
+    const swipeDistance = touchStartX - touchEndX;
+    const currentIndex = dynamicTabs.findIndex(tab => tab.value === activeTab);
+    
+    // 左滑（手指向左移动）- 下一个TAB
+    if (swipeDistance > minSwipeDistance && currentIndex < dynamicTabs.length - 1) {
+      const nextTab = dynamicTabs[currentIndex + 1];
+      setActiveTab(nextTab.value);
+    }
+    // 右滑（手指向右移动）- 上一个TAB
+    else if (swipeDistance < -minSwipeDistance && currentIndex > 0) {
+      const prevTab = dynamicTabs[currentIndex - 1];
+      setActiveTab(prevTab.value);
+    }
+    
+    // 重置触摸位置
+    setTouchStartX(0);
+    setTouchEndX(0);
+    setIsSwiping(false);
+    setSwipeOffset(0);
+  };
   
   // 构建动态TAB列表（含兜底保障）
   const dynamicTabs = useMemo(() => {
@@ -91,10 +145,17 @@ function HomeContent() {
         });
       });
     
-    // 4. 兜底保障：确保至少"推荐"TAB存在
+    // 4. 兜底保障：确保至少“推荐”TAB存在
     if (tabs.length === 0 || !tabs.some(t => t.value === '')) {
       tabs.unshift({ label: '推荐', value: '', type: 'fixed' });
     }
+        
+    // 5. 插入“摘要”TAB到最左侧（索引0位置）
+    tabs.splice(0, 0, { 
+      label: '摘要', 
+      value: 'summary', 
+      type: 'fixed' 
+    });
     
     return tabs;
   }, [fixedTabs, rssSourceTabs, sources]);
@@ -135,7 +196,7 @@ function HomeContent() {
     } else {
       // 分类Tab筛选（科技、经济、教育等）
       f.tag_category = activeTab;
-      console.log('[HomePage] 分类筛选:', { tag_category: activeTab });
+      // console.log('[HomePage] 分类筛选:', { tag_category: activeTab });
       // 注意：分类TAB不使用selectedTags，避免筛选冲突
     }
     
@@ -144,64 +205,91 @@ function HomeContent() {
       f.language = languageFilter;
     }
     
-    console.log('[HomePage] Filters:', f);
+    // console.log('[HomePage] Filters:', f);
     return f;
   }, [activeTab, selectedTags, languageFilter]);
 
-  // 两个Hook都调用（遵循React Hook规则：不能条件性调用Hook）
+  // 两个Hook都调用（遵循React Hook的规则：不能条件性调用Hook）
   // 通过数据选择切换，activeTab === "推荐" 时使用推荐数据
   const { data: recommendPages, fetchNextPage: fetchNextPageRecommend, 
           hasNextPage: hasNextPageRecommend, isFetchingNextPage: isFetchingNextPageRecommend, 
           isFetching: isFetchingRecommend, isLoading: isLoadingRecommend } = useRecommendedArticles();
-  
+    
+  // 摘要TAB的Hook
+  const { 
+    data: summaryPages, 
+    fetchNextPage: fetchNextPageSummary, 
+    hasNextPage: hasNextPageSummary, 
+    isFetchingNextPage: isFetchingNextPageSummary, 
+    isFetching: isFetchingSummary, 
+    isLoading: isLoadingSummary 
+  } = useSummaryArticles();
+    
   const { data: pages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, isLoading } = useArticles(filters);
 
   // 原始文章列表
   const articles = useMemo(() => {
-    console.log('[HomePage] 数据选择逻辑:', {
-      activeTab,
-      hasRecommendPages: !!recommendPages,
-      recommendPagesCount: recommendPages?.pages?.length || 0,
-      hasPages: !!pages,
-      pagesCount: pages?.pages?.length || 0
-    });
-    
+    // console.log('[HomePage] 数据选择逻辑:', {
+    //   activeTab,
+    //   hasRecommendPages: !!recommendPages,
+    //   recommendPagesCount: recommendPages?.pages?.length || 0,
+    //   hasSummaryPages: !!summaryPages,
+    //   summaryPagesCount: summaryPages?.pages?.length || 0,
+    //   hasPages: !!pages,
+    //   pagesCount: pages?.pages?.length || 0
+    // });
+      
+    // "摘要"Tab使用摘要API数据
+    if (activeTab === 'summary' && summaryPages) {
+      const summaryArticles = summaryPages.pages.flat();
+      // console.log('[HomePage] ✅ 使用摘要TAB数据:', { count: summaryArticles.length });
+      return summaryArticles;
+    }
+      
     // “推荐”Tab使用推荐API数据，其他Tab使用筛选API数据
     if ((activeTab === '推荐' || activeTab === '') && recommendPages) {
       const recommendArticles = recommendPages.pages.flat();
-      console.log('[HomePage] ✅ 使用推荐TAB数据:', { 
-        count: recommendArticles.length, 
-        pages: recommendPages.pages.length,
-        firstArticle: recommendArticles[0] ? {
-          id: recommendArticles[0].id,
-          title: recommendArticles[0].title?.substring(0, 30)
-        } : null
-      });
+      // console.log('[HomePage] ✅ 使用推荐TAB数据:', { 
+      //   count: recommendArticles.length, 
+      //   pages: recommendPages.pages.length,
+      //   firstArticle: recommendArticles[0] ? {
+      //     id: recommendArticles[0].id,
+      //     title: recommendArticles[0].title?.substring(0, 30)
+      //   } : null
+      // });
       return recommendArticles;
     }
     const listArticles = pages?.pages.flat() || [];
-    if (activeTab === '全部' || activeTab === 'all') {
-      console.log('[HomePage] ✅ 使用全部TAB数据:', { 
-        count: listArticles.length,
-        firstArticle: listArticles[0] ? {
-          id: listArticles[0].id,
-          title: listArticles[0].title?.substring(0, 30)
-        } : null
-      });
-    }
+    // if (activeTab === '全部' || activeTab === 'all') {
+    //   console.log('[HomePage] ✅ 使用全部TAB数据:', { 
+    //     count: listArticles.length,
+    //     firstArticle: listArticles[0] ? {
+    //       id: listArticles[0].id,
+    //       title: listArticles[0].title?.substring(0, 30)
+    //     } : null
+    //   });
+    // }
     return listArticles;
   }, [activeTab, pages, recommendPages]);
   
-  // 推荐Tab和其他Tab的加载状态
+  // 推荐Tab、摘要Tab和其他Tab的加载状态
   const isLoadingArticles = (activeTab === '推荐' || activeTab === '') 
     ? (isFetchingNextPageRecommend || isFetchingRecommend || isLoadingRecommend)
-    : (isFetchingNextPage || isFetching || isLoading);
+    : activeTab === 'summary'
+      ? (isFetchingNextPageSummary || isFetchingSummary || isLoadingSummary)
+      : (isFetchingNextPage || isFetching || isLoading);
   
-  const hasMoreArticles = (activeTab === '推荐' || activeTab === '') ? hasNextPageRecommend : hasNextPage;
+  const hasMoreArticles = (activeTab === '推荐' || activeTab === '') 
+    ? hasNextPageRecommend 
+    : activeTab === 'summary' 
+      ? hasNextPageSummary 
+      : hasNextPage;
   
   const loadMoreArticles = (activeTab === '推荐' || activeTab === '') 
     ? fetchNextPageRecommend 
-    : fetchNextPage;
+    : activeTab === 'summary'
+      ? fetchNextPageSummary
+      : fetchNextPage;
   
   // 应用自动屏蔽过滤
   const { filteredArticles } = useAutoFilter(articles);
@@ -231,15 +319,40 @@ function HomeContent() {
   }, [articleIds]);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="sticky top-0 z-30 bg-white safe-top">
+    <div 
+      className="flex flex-col min-h-screen"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <header className="sticky top-0 z-30 bg-[#faf7f0] border-b border-[#e8e0d0] safe-top">
         <div className="flex items-center h-[52px] px-4">
-          <h1 className="text-lg font-bold text-gray-900 flex-shrink-0">RSS新闻</h1>
+          <h1 className="text-lg font-bold text-[#3d3225] flex-shrink-0">阅读狂人</h1>
           <div className="flex-1 ml-3 flex items-center gap-2">
             <div className="flex-1">
               <SearchBar placeholder="搜索新闻..." />
             </div>
             <LanguageFilter />
+            {/* 帮助图标 */}
+            <button
+              onClick={() => setShowHelp(true)}
+              className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#e8e0d0] transition-colors"
+              title="查看使用手册"
+            >
+              <svg
+                className="w-5 h-5 text-[#8b7355]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </button>
           </div>
         </div>
       </header>
@@ -248,23 +361,45 @@ function HomeContent() {
         active={activeTab}
         onChange={setActiveTab}
       />
-      <div className="flex-1 pb-14">
-        <ArticleList
-          key={activeTab}  // 强制TAB切换时重新创建组件，避免状态共享
-          articles={filteredArticles}
-          loading={isLoadingArticles}
-          hasMore={!!hasMoreArticles}
-          onLoadMore={() => loadMoreArticles()}
-          emptyText={
-            selectedTags.length > 0 
-              ? "暂无符合筛选条件的文章" 
-              : activeTab.startsWith('rss_')
-                ? "该栏目暂无文章"
-                : "暂无文章"
-          }
-          onArticleNavigate={handleArticleNavigate}
-        />
+      <div className="flex-1 pb-14 bg-[#f5f1e8]">
+        <div
+          key={activeTab}
+          className="animate-fadeIn"
+          style={{
+            animation: 'fadeIn 0.3s ease-out',
+          }}
+        >
+          {activeTab === 'summary' ? (
+            // 摘要TAB使用专用SummaryArticleList
+            <SummaryArticleList
+              articles={filteredArticles}
+              loading={isLoadingArticles}
+              hasMore={!!hasMoreArticles}
+              onLoadMore={() => loadMoreArticles()}
+              onArticleNavigate={handleArticleNavigate}
+            />
+          ) : (
+            // 其他TAB使用普通ArticleList
+            <ArticleList
+              articles={filteredArticles}
+              loading={isLoadingArticles}
+              hasMore={!!hasMoreArticles}
+              onLoadMore={() => loadMoreArticles()}
+              emptyText={
+                selectedTags.length > 0 
+                  ? "暂无符合筛选条件的文章" 
+                  : activeTab.startsWith('rss_')
+                    ? "该栏目暂无文章"
+                    : "暂无文章"
+              }
+              onArticleNavigate={handleArticleNavigate}
+            />
+          )}
+        </div>
       </div>
+      
+      {/* 帮助弹窗 */}
+      <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   );
 }

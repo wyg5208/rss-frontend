@@ -115,7 +115,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'rss-auth-storage',
-      partialize: (state) => ({ token: state.token, refreshToken: state.refreshToken }),
+      partialize: (state) => ({ 
+        token: state.token, 
+        refreshToken: state.refreshToken,
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );

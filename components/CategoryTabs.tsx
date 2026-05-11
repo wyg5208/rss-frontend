@@ -28,10 +28,10 @@ export default function CategoryTabs({ tabs, active, onChange }: Props) {
   }, [active]);
 
   return (
-    <div className="sticky top-[52px] z-20 bg-white">
+    <div className="sticky top-[52px] z-20 bg-[#faf7f0] border-b border-[#e8e0d0]">
       <div
         ref={scrollRef}
-        className="flex overflow-x-auto scrollbar-hide px-3 gap-1"
+        className="flex overflow-x-auto scrollbar-hide px-2 gap-0"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {tabs.map((tab) => (
@@ -39,11 +39,18 @@ export default function CategoryTabs({ tabs, active, onChange }: Props) {
             key={tab.value}
             ref={(el) => { if (el) btnRefs.current.set(tab.value, el); }}
             onClick={() => onChange(tab.value)}
-            className={["flex-shrink-0 px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors relative", active === tab.value ? "text-red-500" : "text-gray-600"].join(" ")}
+            className={[
+              "flex-shrink-0 px-1.5 py-1 text-xs font-medium transition-colors relative",
+              "min-w-[45px] max-w-[75px]",
+              "leading-tight text-center",
+              "break-words whitespace-normal",
+              "m-0 border-0 outline-none",
+              active === tab.value ? "text-red-500" : "text-gray-600"
+            ].join(" ")}
           >
             {tab.label}
             {active === tab.value && (
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-[3px] bg-red-500 rounded-full" />
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-[2px] bg-red-500 rounded-full" />
             )}
           </button>
         ))}

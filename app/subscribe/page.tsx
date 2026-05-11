@@ -134,10 +134,10 @@ export default function SubscribePage() {
   }, [sortedTags, sortBy]);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="sticky top-0 z-30 bg-white border-b border-gray-100 safe-top">
+    <div className="flex flex-col min-h-screen bg-[#f5f1e8]">
+      <header className="sticky top-0 z-30 bg-[#faf7f0] border-b border-[#e8e0d0] safe-top">
         <div className="h-[52px] flex items-center px-4">
-          <h1 className="text-lg font-bold text-gray-900">关注</h1>
+          <h1 className="text-lg font-bold text-[#3d3225]">关注</h1>
           {selectedTags.length > 0 && tab === 'tags' && (
             <div className="ml-auto flex items-center gap-2">
               <button
@@ -159,27 +159,27 @@ export default function SubscribePage() {
         <div className="flex">
           {tabs.map(({ key, label, icon: Icon }) => (
             <button key={key} onClick={() => setTab(key)}
-              className={["flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium relative", tab === key ? "text-red-500" : "text-gray-500"].join(" ")}
+              className={["flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium relative", tab === key ? "text-[#c45a3c]" : "text-[#8b7355]"].join(" ")}
             >
               <Icon className="w-4 h-4" />{label}
-              {tab === key && <span className="absolute bottom-0 w-8 h-[3px] bg-red-500 rounded-full" />}
+              {tab === key && <span className="absolute bottom-0 w-8 h-[3px] bg-[#c45a3c] rounded-full" />}
             </button>
           ))}
         </div>
       </header>
-      <div className="flex-1 pb-14">
+      <div className="flex-1 pb-14 bg-[#f5f1e8]">
         {tab === "tab_config" && <TabConfigPanel />}
         {tab === "channels" && <ChannelList />}
         {tab === "tags" && (
           <div>
             {/* 选中标签预览区 */}
             {selectedTags.length > 0 && (
-              <div className="px-4 py-3 bg-blue-50 border-b border-blue-100">
+              <div className="px-4 py-3 bg-[#f0e6d2] border-b border-[#e8e0d0]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-blue-600 font-medium">
+                  <span className="text-xs text-[#8b6914] font-medium">
                     已选择 {selectedTags.length} 个标签
                   </span>
-                  <span className="text-[10px] text-blue-400">
+                  <span className="text-[10px] text-[#a89060]">
                     标签筛选仅对&ldquo;推荐&rdquo;和&ldquo;全部&rdquo;栏目生效
                   </span>
                 </div>
@@ -187,7 +187,7 @@ export default function SubscribePage() {
                   {selectedTags.map((name) => (
                     <span
                       key={name}
-                      className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full flex items-center gap-1"
+                      className="px-2 py-0.5 bg-[#e8d5b5] text-[#6b5d4f] text-xs rounded-full flex items-center gap-1"
                     >
                       {name}
                     </span>
@@ -197,13 +197,13 @@ export default function SubscribePage() {
             )}
             
             {/* 排序选项 */}
-            <div className="px-4 py-2 border-b border-gray-100 bg-gray-50">
+            <div className="px-4 py-2 border-b border-[#e8e0d0] bg-[#faf7f0]">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">排序:</span>
+                <span className="text-xs text-[#8b7355]">排序:</span>
                 <button
                   onClick={() => setSortBy('default')}
                   className={`px-2 py-1 text-xs rounded ${
-                    sortBy === 'default' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 border border-gray-200'
+                    sortBy === 'default' ? 'bg-[#c45a3c] text-white' : 'bg-[#fffdf7] text-[#6b5d4f] border border-[#e8e0d0]'
                   }`}
                 >
                   文章数
@@ -211,7 +211,7 @@ export default function SubscribePage() {
                 <button
                   onClick={() => setSortBy('alpha')}
                   className={`px-2 py-1 text-xs rounded flex items-center gap-1 ${
-                    sortBy === 'alpha' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 border border-gray-200'
+                    sortBy === 'alpha' ? 'bg-[#c45a3c] text-white' : 'bg-[#fffdf7] text-[#6b5d4f] border border-[#e8e0d0]'
                   }`}
                 >
                   <ArrowUpDown className="w-3 h-3" />
@@ -220,7 +220,7 @@ export default function SubscribePage() {
                 <button
                   onClick={() => setSortBy('category')}
                   className={`px-2 py-1 text-xs rounded flex items-center gap-1 ${
-                    sortBy === 'category' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 border border-gray-200'
+                    sortBy === 'category' ? 'bg-[#c45a3c] text-white' : 'bg-[#fffdf7] text-[#6b5d4f] border border-[#e8e0d0]'
                   }`}
                 >
                   <Layers className="w-3 h-3" />
@@ -236,10 +236,10 @@ export default function SubscribePage() {
                 <div className="space-y-4">
                   {Object.entries(groupedTags).map(([category, categoryTags]) => (
                     <div key={category}>
-                      <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                      <h3 className="text-sm font-medium text-[#5a4a3a] mb-2 flex items-center gap-1">
                         <Layers className="w-3.5 h-3.5" />
                         {category}
-                        <span className="text-xs text-gray-400">({categoryTags.length})</span>
+                        <span className="text-xs text-[#a89060]">({categoryTags.length})</span>
                       </h3>
                       <div className="flex flex-wrap gap-2.5">
                         {categoryTags.map((tag) => {

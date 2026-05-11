@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTabConfigStore } from '@/store/useTabConfigStore';
-import { ChevronUp, ChevronDown, CheckSquare, Square, Save, Info, Lock } from 'lucide-react';
+import { ChevronUp, ChevronDown, CheckSquare, Square, Save, Info, Lock, ArrowDown, ArrowRight } from 'lucide-react';
 
 interface RSSSource {
   id: number;
@@ -21,6 +21,7 @@ interface RSSSource {
   category?: string;
   update_frequency?: string;
   total_articles?: number;
+  week_articles?: number;  // 近一周文章数
   language?: string;  // 语言代码：zh, en, etc.
 }
 
@@ -33,6 +34,8 @@ export default function TabConfigPanel() {
   } = useTabConfigStore();
   
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [fixedSectionCollapsed, setFixedSectionCollapsed] = useState(false);
+  const [rssSectionCollapsed, setRssSectionCollapsed] = useState(false);
   
   // 组件挂载时从后端加载配置（多设备同步）
   useEffect(() => {
@@ -136,185 +139,223 @@ export default function TabConfigPanel() {
   
   return (
     <div className="flex flex-col">
-      {/* 顶部操作栏 */}
-      <div className="px-3 py-2 bg-white border-b border-gray-100">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-gray-700">
-            栏目配置管理
-          </span>
-          <div className="flex items-center gap-2">
-            {saveStatus === 'success' && (
-              <span className="text-xs text-green-600">保存成功</span>
-            )}
-            {saveStatus === 'error' && (
-              <span className="text-xs text-red-600">保存失败</span>
-            )}
+      {/* 内容区域 - 可滚动 */}
+      <div className="flex-1">
+        {/* 固定栏目配置区 - 可折叠卡片 */}
+        <div className="border-b border-gray-100">
+          {/* 卡片标题行 */}
+          <div className="px-3 py-3 flex items-center justify-between">
             <button
-              onClick={handleSave}
-              disabled={isSyncing || !hasUnsavedChanges}
-              className={`text-xs px-3 py-1 rounded transition-all flex items-center gap-1 ${
-                isSyncing || !hasUnsavedChanges
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-green-500 text-white hover:bg-green-600 active:scale-95'
-              }`}
+              onClick={() => setFixedSectionCollapsed(!fixedSectionCollapsed)}
+              className="flex items-center gap-2 hover:text-gray-600 transition-colors flex-1"
             >
-              <Save className="w-3 h-3" />
-              {isSyncing ? '保存中...' : '保存配置'}
-            </button>
-          </div>
-        </div>
-        {!hasUnsavedChanges && (
-          <div className="text-[10px] text-gray-400">所有更改已保存</div>
-        )}
-        {hasUnsavedChanges && (
-          <div className="text-[10px] text-orange-500">有未保存的更改，点击“保存配置”同步到云端</div>
-        )}
-      </div>
-      
-      {/* 固定栏目配置区 */}
-      <div className="px-3 py-3 border-b border-gray-100">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">
-          固定栏目 <span className="text-xs text-gray-400 font-normal">(上→下 = 首页左→右)</span>
-        </h3>
-        <div className="space-y-1">
-          {fixedTabs.map((tab, index) => (
-            <div key={tab.label} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-              {/* 兜底TAB显示锁定图标，不可操作 */}
-              {tab.isRequired ? (
-                <div className="w-4 h-4 flex items-center justify-center" title="必须显示">
-                  <Lock className="w-4 h-4 text-gray-400" />
-                </div>
+              {fixedSectionCollapsed ? (
+                <ArrowRight className="w-4 h-4 text-gray-400" />
               ) : (
-                <button 
-                  onClick={() => toggleFixedTab(tab.label)}
-                  className="cursor-pointer"
-                >
-                  {tab.isVisible ? (
-                    <CheckSquare className="w-4 h-4 text-blue-500" />
-                  ) : (
-                    <Square className="w-4 h-4 text-gray-300" />
-                  )}
-                </button>
+                <ArrowDown className="w-4 h-4 text-gray-400" />
               )}
-              
-              <span className={`flex-1 text-sm ${tab.isVisible ? 'text-gray-900' : 'text-gray-400'}`}>
-                {tab.label}
-                {tab.isRequired && (
-                  <span className="ml-1 text-[10px] text-gray-400">(不可隐藏)</span>
-                )}
-              </span>
-              
-              <div className="flex gap-1">
-                <button
-                  onClick={() => moveFixedTabUp(index)}
-                  disabled={index === 0}
-                  className="p-1 rounded hover:bg-gray-200 disabled:opacity-30"
-                >
-                  <ChevronUp className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => moveFixedTabDown(index)}
-                  disabled={index === fixedTabs.length - 1}
-                  className="p-1 rounded hover:bg-gray-200 disabled:opacity-30"
-                >
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      
-      {/* RSS源栏目配置区 */}
-      <div className="px-3 py-3">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-medium text-gray-700">RSS源栏目 (最多选择10个)</h3>
-          <span className={`text-xs ${vRSSCount >= 10 ? 'text-orange-500 font-medium' : 'text-gray-500'}`}>
-            已选择 {vRSSCount} / 10
-          </span>
-        </div>
-        
-        {vRSSCount >= 10 && (
-          <div className="mb-2 px-2 py-1 bg-orange-50 border border-orange-200 rounded text-xs text-orange-600 flex items-center gap-1">
-            <Info className="w-3 h-3" />
-            已达到最大选择数量，取消一个后才能添加
-          </div>
-        )}
-        
-        <div className="space-y-1 max-h-[400px] overflow-y-auto">
-          {sources?.map(source => {
-            const tabIndex = rssSourceTabs.findIndex(t => t.sourceId === source.id);
-            const isSelected = tabIndex !== -1;
-            const selectedTab = isSelected ? rssSourceTabs[tabIndex] : null;
-            const isVisible = selectedTab?.isVisible ?? false;
-            const canSelect = vRSSCount < 10 || isVisible;
-            const langLabel = getLanguageLabel(source.language);
+              <h3 className="text-sm font-medium text-gray-700">
+                固定栏目 
+                <span className="text-xs text-gray-400 font-normal ml-1">(上→下 = 首页左→右)</span>
+              </h3>
+            </button>
             
-            return (
-              <div key={source.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                <button
-                  onClick={() => {
-                    if (canSelect) toggleRSSSourceTab(source.id, source.name);
-                  }}
-                  disabled={!canSelect}
-                  className={!canSelect ? 'cursor-not-allowed' : ''}
-                >
-                  {isVisible ? (
-                    <CheckSquare className="w-4 h-4 text-blue-500" />
+            {/* 保存配置按钮 */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {saveStatus === 'success' && (
+                <span className="text-xs text-green-600">保存成功</span>
+              )}
+              {saveStatus === 'error' && (
+                <span className="text-xs text-orange-600 font-medium">请先登录后再保存配置</span>
+              )}
+              <button
+                onClick={handleSave}
+                disabled={isSyncing || !hasUnsavedChanges}
+                className={`text-xs px-3 py-1.5 rounded transition-all flex items-center gap-1 ${
+                  isSyncing || !hasUnsavedChanges
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-green-500 text-white hover:bg-green-600 active:scale-95'
+                }`}
+              >
+                <Save className="w-3 h-3" />
+                {isSyncing ? '保存中...' : '保存配置'}
+              </button>
+            </div>
+          </div>
+                
+          {/* 保存状态提示 */}
+          {!hasUnsavedChanges && (
+            <div className="px-3 pb-2 text-[10px] text-gray-400">所有更改已保存</div>
+          )}
+          {hasUnsavedChanges && (
+            <div className="px-3 pb-2 text-[10px] text-orange-500">有未保存的更改，点击"保存配置"同步到云端</div>
+          )}
+          
+          {/* 卡片内容区 */}
+          {!fixedSectionCollapsed && (
+            <div className="px-3 pb-3 space-y-1">
+              {fixedTabs.map((tab, index) => (
+                <div key={tab.label} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                  {/* 兜底TAB显示锁定图标，不可操作 */}
+                  {tab.isRequired ? (
+                    <div className="w-4 h-4 flex items-center justify-center" title="必须显示">
+                      <Lock className="w-4 h-4 text-gray-400" />
+                    </div>
                   ) : (
-                    <Square className="w-4 h-4 text-gray-300" />
+                    <button 
+                      onClick={() => toggleFixedTab(tab.label)}
+                      className="cursor-pointer"
+                    >
+                      {tab.isVisible ? (
+                        <CheckSquare className="w-4 h-4 text-blue-500" />
+                      ) : (
+                        <Square className="w-4 h-4 text-gray-300" />
+                      )}
+                    </button>
                   )}
-                </button>
-                
-                <div className="flex-1 min-w-0">
-                  {/* RSS源名称 */}
-                  <div className={`text-sm font-medium truncate ${isVisible ? 'text-gray-900' : 'text-gray-400'}`}>
-                    {source.name}
-                  </div>
-                  
-                  {/* 分类、语言和统计信息 */}
-                  <div className="flex flex-wrap items-center gap-1 text-[10px] text-gray-500 mt-0.5">
-                    {source.category && (
-                      <span className="px-1 py-0.5 bg-gray-100 rounded">{source.category}</span>
+                        
+                  <span className={`flex-1 text-sm ${tab.isVisible ? 'text-gray-900' : 'text-gray-400'}`}>
+                    {tab.label}
+                    {tab.isRequired && (
+                      <span className="ml-1 text-[10px] text-gray-400">(不可隐藏)</span>
                     )}
-                    {source.language && (
-                      <span className={`px-1 py-0.5 rounded font-medium ${langLabel.color}`}>
-                        {langLabel.text}
-                      </span>
-                    )}
-                    {source.total_articles !== undefined && source.total_articles > 0 && (
-                      <span>{source.total_articles}篇</span>
-                    )}
-                  </div>
-                </div>
-                
-                {isSelected && (
-                  <div className="flex gap-1 flex-shrink-0">
+                  </span>
+                        
+                  <div className="flex gap-1">
                     <button
-                      onClick={() => moveRSSSourceTabUp(tabIndex)}
-                      disabled={tabIndex === 0}
+                      onClick={() => moveFixedTabUp(index)}
+                      disabled={index === 0}
                       className="p-1 rounded hover:bg-gray-200 disabled:opacity-30"
                     >
                       <ChevronUp className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => moveRSSSourceTabDown(tabIndex)}
-                      disabled={tabIndex === rssSourceTabs.length - 1}
+                      onClick={() => moveFixedTabDown(index)}
+                      disabled={index === fixedTabs.length - 1}
                       className="p-1 rounded hover:bg-gray-200 disabled:opacity-30"
                     >
                       <ChevronDown className="w-4 h-4" />
                     </button>
                   </div>
-                )}
-              </div>
-            );
-          })}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
-      
-      {/* 底部提示 */}
-      <div className="px-3 py-1.5 bg-gray-50 text-center text-[10px] text-gray-400 border-t border-gray-100">
-        配置修改后需点击&ldquo;保存配置&rdquo;按钮才会生效
+              
+        {/* RSS源栏目配置区 - 可折叠卡片 */}
+        <div>
+          {/* 卡片标题行 */}
+          <button
+            onClick={() => setRssSectionCollapsed(!rssSectionCollapsed)}
+            className="w-full px-3 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-medium text-gray-700">RSS源栏目</h3>
+              <span className={`text-xs ${vRSSCount >= 10 ? 'text-orange-500 font-medium' : 'text-gray-500'}`}>
+                (最多选择10个，已选 {vRSSCount})
+              </span>
+            </div>
+            {rssSectionCollapsed ? (
+              <ArrowRight className="w-4 h-4 text-gray-400" />
+            ) : (
+              <ArrowDown className="w-4 h-4 text-gray-400" />
+            )}
+          </button>
+                
+          {/* 卡片内容区 */}
+          {!rssSectionCollapsed && (
+            <div className="px-3 pb-3">
+              {vRSSCount >= 10 && (
+                <div className="mb-2 px-2 py-1 bg-orange-50 border border-orange-200 rounded text-xs text-orange-600 flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  已达到最大选择数量，取消一个后才能添加
+                </div>
+              )}
+                    
+              <div className="space-y-1 max-h-[400px] overflow-y-auto">
+                {sources?.map(source => {
+                  const tabIndex = rssSourceTabs.findIndex(t => t.sourceId === source.id);
+                  const isSelected = tabIndex !== -1;
+                  const selectedTab = isSelected ? rssSourceTabs[tabIndex] : null;
+                  const isVisible = selectedTab?.isVisible ?? false;
+                  const canSelect = vRSSCount < 10 || isVisible;
+                  const langLabel = getLanguageLabel(source.language);
+                        
+                  return (
+                    <div key={source.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                      <button
+                        onClick={() => {
+                          if (canSelect) toggleRSSSourceTab(source.id, source.name);
+                        }}
+                        disabled={!canSelect}
+                        className={!canSelect ? 'cursor-not-allowed' : ''}
+                      >
+                        {isVisible ? (
+                          <CheckSquare className="w-4 h-4 text-blue-500" />
+                        ) : (
+                          <Square className="w-4 h-4 text-gray-300" />
+                        )}
+                      </button>
+                            
+                      <div className="flex-1 min-w-0">
+                        {/* RSS源名称 */}
+                        <div className={`text-sm font-medium truncate ${isVisible ? 'text-gray-900' : 'text-gray-400'}`}>
+                          {source.name}
+                        </div>
+                              
+                        {/* 分类、语言、统计信息 */}
+                        <div className="flex flex-wrap items-center gap-1 text-[10px] text-gray-500 mt-0.5">
+                          {source.category && (
+                            <span className="px-1 py-0.5 bg-gray-100 rounded">{source.category}</span>
+                          )}
+                          {source.language && (
+                            <span className={`px-1 py-0.5 rounded font-medium ${langLabel.color}`}>
+                              {langLabel.text}
+                            </span>
+                          )}
+                          {/* 近一周文章统计 - 蓝色强调标签 */}
+                          {source.week_articles !== undefined && source.week_articles > 0 && (
+                            <span className="px-1 py-0.5 bg-blue-50 text-blue-600 rounded font-medium">
+                              近一周 {source.week_articles} 篇
+                            </span>
+                          )}
+                          {source.total_articles !== undefined && source.total_articles > 0 && (
+                            <span>总计 {source.total_articles} 篇</span>
+                          )}
+                        </div>
+                      </div>
+                            
+                      {isSelected && (
+                        <div className="flex gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => moveRSSSourceTabUp(tabIndex)}
+                            disabled={tabIndex === 0}
+                            className="p-1 rounded hover:bg-gray-200 disabled:opacity-30"
+                          >
+                            <ChevronUp className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => moveRSSSourceTabDown(tabIndex)}
+                            disabled={tabIndex === rssSourceTabs.length - 1}
+                            className="p-1 rounded hover:bg-gray-200 disabled:opacity-30"
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+              
+        {/* 底部提示 */}
+        <div className="px-3 py-1.5 bg-gray-50 text-center text-[10px] text-gray-400 border-t border-gray-100">
+          配置修改后需点击&ldquo;保存配置&rdquo;按钮才会生效
+        </div>
       </div>
     </div>
   );

@@ -81,7 +81,7 @@ export default function MePage() {
     fetchStats();
   }, [isAuthenticated]);
 
-  const displayName = user?.nickname || user?.username || "RSS新闻用户";
+  const displayName = user?.nickname || user?.username || "阅读狂人用户";
   const initial = displayName.charAt(0).toUpperCase();
 
   const handleClearCache = async () => {
@@ -121,8 +121,8 @@ export default function MePage() {
   };
 
   return (
-    <div className="min-h-screen pb-14">
-      <header className="bg-gradient-to-r from-red-500 to-red-400 text-white px-4 pt-12 pb-8 safe-top">
+    <div className="min-h-screen pb-14 bg-[#f5f1e8]">
+      <header className="bg-gradient-to-r from-[#c45a3c] to-[#d4734e] text-white px-4 pt-12 pb-8 safe-top">
         {isChecking ? (
           <div className="flex items-center gap-4 animate-pulse">
             <div className="w-16 h-16 rounded-full bg-white/20" />
@@ -173,7 +173,7 @@ export default function MePage() {
             <p className="text-white/90 text-sm mb-3">登录后同步收藏和历史</p>
             <button
               onClick={() => router.push("/login")}
-              className="flex items-center gap-1.5 bg-white text-red-500 px-6 py-2 rounded-full font-medium text-sm hover:bg-red-50 active:scale-95 transition-all"
+              className="flex items-center gap-1.5 bg-white text-[#c45a3c] px-6 py-2 rounded-full font-medium text-sm hover:bg-[#faf7f0] active:scale-95 transition-all"
             >
               <LogIn className="w-4 h-4" />
               立即登录
@@ -182,83 +182,83 @@ export default function MePage() {
         )}
       </header>
 
-      <div className="bg-white mt-2">
+      <div className="bg-[#fffdf7] mt-2">
         <Link
           href="/me/favorites"
-          className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
+          className="flex items-center px-4 py-3.5 active:bg-[#f5f1e8] border-b border-[#e8e0d0]"
         >
-          <Heart className="w-5 h-5 text-red-400 mr-3" />
-          <span className="flex-1 text-[15px]">我的收藏</span>
-          <ChevronRight className="w-4 h-4 text-gray-300" />
+          <Heart className="w-5 h-5 text-[#c45a3c] mr-3" />
+          <span className="flex-1 text-[15px] text-[#2c2416]">我的收藏</span>
+          <ChevronRight className="w-4 h-4 text-[#a89060]" />
         </Link>
         <Link
           href="/me/history"
-          className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
+          className="flex items-center px-4 py-3.5 active:bg-[#f5f1e8] border-b border-[#e8e0d0]"
         >
-          <Clock className="w-5 h-5 text-blue-400 mr-3" />
-          <span className="flex-1 text-[15px]">阅读历史</span>
-          <ChevronRight className="w-4 h-4 text-gray-300" />
+          <Clock className="w-5 h-5 text-[#8b6914] mr-3" />
+          <span className="flex-1 text-[15px] text-[#2c2416]">阅读历史</span>
+          <ChevronRight className="w-4 h-4 text-[#a89060]" />
         </Link>
         <Link
           href="/subscribe?tab=tags"
-          className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
+          className="flex items-center px-4 py-3.5 active:bg-[#f5f1e8] border-b border-[#e8e0d0]"
         >
-          <Tag className="w-5 h-5 text-purple-400 mr-3" />
-          <span className="flex-1 text-[15px]">我的标签</span>
-          <span className="text-xs text-gray-400 mr-1">{subCount}个</span>
-          <ChevronRight className="w-4 h-4 text-gray-300" />
+          <Tag className="w-5 h-5 text-[#9b7bb0] mr-3" />
+          <span className="flex-1 text-[15px] text-[#2c2416]">我的标签</span>
+          <span className="text-xs text-[#a89060] mr-1">{subCount}个</span>
+          <ChevronRight className="w-4 h-4 text-[#a89060]" />
         </Link>
         <Link
           href="/me/blocked"
-          className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
+          className="flex items-center px-4 py-3.5 active:bg-[#f5f1e8] border-b border-[#e8e0d0]"
         >
-          <EyeOff className="w-5 h-5 text-gray-500 mr-3" />
-          <span className="flex-1 text-[15px]">忽略文章</span>
-          <span className="text-xs text-gray-400 mr-1">{statsLoading ? "-" : blockedCount}篇</span>
-          <ChevronRight className="w-4 h-4 text-gray-300" />
+          <EyeOff className="w-5 h-5 text-[#8b7355] mr-3" />
+          <span className="flex-1 text-[15px] text-[#2c2416]">忽略文章</span>
+          <span className="text-xs text-[#a89060] mr-1">{statsLoading ? "-" : blockedCount}篇</span>
+          <ChevronRight className="w-4 h-4 text-[#a89060]" />
         </Link>
         <Link
           href="/subscribe?tab=channels"
-          className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
+          className="flex items-center px-4 py-3.5 active:bg-[#f5f1e8] border-b border-[#e8e0d0]"
         >
-          <Radio className="w-5 h-5 text-green-500 mr-3" />
-          <span className="flex-1 text-[15px]">我的频道</span>
-          <span className="text-xs text-gray-400 mr-1">{statsLoading ? "-" : channelCount}个</span>
-          <ChevronRight className="w-4 h-4 text-gray-300" />
+          <Radio className="w-5 h-5 text-[#7a9b6e] mr-3" />
+          <span className="flex-1 text-[15px] text-[#2c2416]">我的频道</span>
+          <span className="text-xs text-[#a89060] mr-1">{statsLoading ? "-" : channelCount}个</span>
+          <ChevronRight className="w-4 h-4 text-[#a89060]" />
         </Link>
         <Link
           href="/me/settings"
-          className="flex items-center px-4 py-3.5 active:bg-gray-50 border-b border-gray-50"
+          className="flex items-center px-4 py-3.5 active:bg-[#f5f1e8] border-b border-[#e8e0d0]"
         >
-          <Settings className="w-5 h-5 text-gray-400 mr-3" />
-          <span className="flex-1 text-[15px]">设置</span>
-          <ChevronRight className="w-4 h-4 text-gray-300" />
+          <Settings className="w-5 h-5 text-[#8b7355] mr-3" />
+          <span className="flex-1 text-[15px] text-[#2c2416]">设置</span>
+          <ChevronRight className="w-4 h-4 text-[#a89060]" />
         </Link>
         <button
           onClick={handleClearCache}
           disabled={isRefreshing}
-          className="flex items-center w-full px-4 py-3.5 active:bg-gray-50 border-b border-gray-50 disabled:opacity-50"
+          className="flex items-center w-full px-4 py-3.5 active:bg-[#f5f1e8] border-b border-[#e8e0d0] disabled:opacity-50"
         >
-          <RefreshCw className={`w-5 h-5 text-green-500 mr-3 ${isRefreshing ? 'animate-spin' : ''}`} />
-          <span className="flex-1 text-[15px] text-left">{isRefreshing ? '刷新中...' : '刷新版本/清除缓存'}</span>
-          <span className="text-xs text-gray-400 mr-1">修复显示问题</span>
+          <RefreshCw className={`w-5 h-5 text-[#7a9b6e] mr-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <span className="flex-1 text-[15px] text-left text-[#2c2416]">{isRefreshing ? '刷新中...' : '刷新版本/清除缓存'}</span>
+          <span className="text-xs text-[#a89060] mr-1">修复显示问题</span>
         </button>
       </div>
 
-      <div className="bg-white mt-2">
+      <div className="bg-[#fffdf7] mt-2">
         <button
           onClick={() => {
             logout();
             router.refresh();
           }}
-          className="flex items-center w-full px-4 py-3.5 active:bg-gray-50 border-b border-gray-50 text-red-500"
+          className="flex items-center w-full px-4 py-3.5 active:bg-[#f5f1e8] border-b border-[#e8e0d0] text-[#c45a3c]"
         >
           <LogOut className="w-5 h-5 mr-3" />
           <span className="flex-1 text-[15px] text-left">退出登录</span>
         </button>
       </div>
-      <p className="text-center text-xs text-gray-300 mt-8">
-        RSS新闻聚合 v0.1.0
+      <p className="text-center text-xs text-[#a89060] mt-8">
+        阅读狂人 v0.1.0
       </p>
     </div>
   );

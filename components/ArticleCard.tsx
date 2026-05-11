@@ -33,13 +33,13 @@ export default function ArticleCard({ article, onBeforeNavigate }: Props) {
   const content = (
     <>
       {hasImage ? (
-        <article className="flex gap-3 px-4 py-3 bg-white active:bg-gray-50 border-b border-gray-50">
+        <article className="flex gap-3 px-4 py-3 bg-[#fffdf7] active:bg-[#f5f1e8] border-b border-[#e8e0d0]">
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-semibold text-gray-900 leading-snug line-clamp-2 mb-2">
+            <h3 className="text-base font-semibold text-[#2c2416] leading-snug line-clamp-2 mb-2">
               {article.title}
             </h3>
-            <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <span className="text-gray-500">{source}</span>
+            <div className="flex items-center gap-1.5 text-xs text-[#8b7355]">
+              <span className="text-[#6b5d4f]">{source}</span>
               <span>·</span>
               {timeAgo && <span>{timeAgo}</span>}
               {article.view_count > 0 && <><span>·</span><span>{article.view_count}阅读</span></>}
@@ -50,20 +50,20 @@ export default function ArticleCard({ article, onBeforeNavigate }: Props) {
           </div>
         </article>
       ) : (
-        <article className="px-4 py-3 bg-white active:bg-gray-50 border-b border-gray-50">
-          <h3 className="text-base font-semibold text-gray-900 leading-snug line-clamp-2 mb-1.5">
+        <article className="px-4 py-3 bg-[#fffdf7] active:bg-[#f5f1e8] border-b border-[#e8e0d0]">
+          <h3 className="text-base font-semibold text-[#2c2416] leading-snug line-clamp-2 mb-1.5">
             {article.title}
           </h3>
           {article.summary && (
-            <p className="text-[13px] text-gray-500 line-clamp-2 mb-1.5 leading-relaxed">{article.summary}</p>
+            <p className="text-[13px] text-[#6b5d4f] line-clamp-2 mb-1.5 leading-relaxed">{article.summary}</p>
           )}
-          <div className="flex items-center gap-1.5 text-xs text-gray-400">
-            <span className="text-gray-500">{source}</span>
+          <div className="flex items-center gap-1.5 text-xs text-[#8b7355]">
+            <span className="text-[#6b5d4f]">{source}</span>
             <span>·</span>
             {timeAgo && <span>{timeAgo}</span>}
             {article.view_count > 0 && <><span>·</span><span>{article.view_count}阅读</span></>}
             {article.tags?.slice(0, 1).map((tag) => (
-              <span key={tag} className="ml-1 text-[11px] px-1.5 py-0.5 bg-red-50 text-red-500 rounded-sm">{tag}</span>
+              <span key={tag} className="ml-1 text-[11px] px-1.5 py-0.5 bg-[#f0e6d2] text-[#8b6914] rounded-sm">{tag}</span>
             ))}
           </div>
         </article>
