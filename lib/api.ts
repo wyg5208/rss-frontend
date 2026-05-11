@@ -126,12 +126,28 @@ async function apiFetch<T>(path: string, options?: RequestInit & { timeout?: num
   const url = isAbsolute ? path : `${apiBase}/api/v1${path}`;
 
   const token = getToken();
+  
+  // 调试日志：仅对 /user/tabs/ 路径
+  if (path.includes('/user/tabs/')) {
+    console.log('[API Debug] 路径:', path);
+    console.log('[API Debug] URL:', url);
+    console.log('[API Debug] Token存在:', !!token);
+    console.log('[API Debug] Token前20字符:', token?.substring(0, 20));
+  }
+  
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options?.headers as Record<string, string>),
   };
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
+    if (path.includes('/user/tabs/')) {
+      console.log('[API Debug] 已添加 Authorization header');
+    }
+  } else {
+    if (path.includes('/user/tabs/')) {
+      console.warn('[API Debug] ⚠️  Token为null，未添加 Authorization header');
+    }
   }
 
   // 创建 AbortController 用于超时控制
