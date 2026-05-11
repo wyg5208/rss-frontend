@@ -29,10 +29,24 @@ export default function TabConfigPanel() {
     fixedTabs, rssSourceTabs, isSyncing, hasChanges,
     toggleFixedTab, moveFixedTabUp, moveFixedTabDown,
     toggleRSSSourceTab, moveRSSSourceTabUp, moveRSSSourceTabDown,
-    syncToBackend, visibleRSSCount
+    syncToBackend, loadFromBackend, visibleRSSCount
   } = useTabConfigStore();
   
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  
+  // 组件挂载时从后端加载配置（多设备同步）
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        await loadFromBackend();
+      } catch (error) {
+        console.error('加载TAB配置失败:', error);
+        // 加载失败时使用localStorage中的配置（降级）
+      }
+    };
+    
+    loadConfig();
+  }, [loadFromBackend]);
   
   // 加载RSS源列表（用于显示名称和TAB选择）
   const { data: sources } = useQuery<RSSSource[]>({
