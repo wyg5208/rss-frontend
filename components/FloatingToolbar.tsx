@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, Languages, ExternalLink, ChevronUp, ChevronDown, Heart, EyeOff } from "lucide-react";
+import { Sparkles, Languages, ExternalLink, ChevronUp, ChevronDown, Heart, EyeOff, Move, ArrowUpToLine } from "lucide-react";
 
 interface FloatingToolbarProps {
   articleId: number;
@@ -28,7 +28,7 @@ interface FloatingToolbarProps {
  * 浮动工具栏组件
  * 
  * 功能：
- * - 7个图标纵向排列（AI摘要、双语、原文、上篇、下篇、收藏、不看）
+ * - 9个图标纵向排列（拖拽、AI摘要、双语、原文、上篇、下篇、收藏、不看、返回顶部）
  * - 默认固定在左侧边缘垂直居中
  * - 支持拖拽到右侧边缘（记录到 localStorage）
  * - 半透明背景，hover/active 效果
@@ -143,6 +143,11 @@ export default function FloatingToolbar({
 
   const hasAIContent = !!aiSummary;
 
+  // 回到顶部功能
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const positionClass = position === 'left' 
     ? 'left-0 rounded-r-xl' 
     : 'right-0 rounded-l-xl';
@@ -166,6 +171,15 @@ export default function FloatingToolbar({
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
       >
+        {/* 0. 拖拽指示器 - 提示用户可以拖拽 */}
+        <div
+          className="w-9 h-9 flex items-center justify-center rounded-lg 
+            cursor-move opacity-60 hover:opacity-100 transition-opacity"
+          title="拖拽此工具栏调整位置"
+        >
+          <Move className="w-4 h-4 text-gray-500" />
+        </div>
+
         {/* 1. AI摘要 - 点击触发生成或切换显示 */}
         <button
           onClick={() => {
@@ -253,6 +267,16 @@ export default function FloatingToolbar({
           title={isBlocked ? "取消不看" : "不看此文章"}
         >
           <EyeOff className={`w-4 h-4 ${isBlocked ? 'text-gray-700' : 'text-gray-400'}`} />
+        </button>
+
+        {/* 8. 返回顶部 */}
+        <button
+          onClick={scrollToTop}
+          className="w-9 h-9 flex items-center justify-center rounded-lg 
+            hover:bg-white/80 active:bg-white transition-colors"
+          title="返回顶部"
+        >
+          <ArrowUpToLine className="w-4 h-4 text-gray-600" />
         </button>
       </div>
     </>
