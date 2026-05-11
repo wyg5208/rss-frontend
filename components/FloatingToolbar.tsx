@@ -164,8 +164,10 @@ export default function FloatingToolbar({
       <div
         style={verticalStyle}
         className={`fixed z-30 flex flex-col gap-1 p-1.5 
-          bg-transparent border border-white/5 shadow-none
-          transition-all duration-300 ${positionClass}`}
+          transition-all duration-300 ${positionClass}
+          ${isDragging 
+            ? 'bg-white/20 border-white/30 shadow-xl scale-105' 
+            : 'bg-transparent border border-white/5 shadow-none'}`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown}
@@ -173,11 +175,15 @@ export default function FloatingToolbar({
       >
         {/* 0. 拖拽指示器 - 提示用户可以拖拽 */}
         <div
-          className="w-9 h-9 flex items-center justify-center rounded-lg 
-            cursor-move opacity-60 hover:opacity-100 transition-opacity"
+          className={`w-9 h-9 flex items-center justify-center rounded-lg 
+            cursor-move transition-all duration-200
+            ${isDragging 
+              ? 'bg-white/30 scale-110 opacity-100 shadow-lg' 
+              : 'opacity-60 hover:opacity-100 hover:bg-white/15'}`}
           title="拖拽此工具栏调整位置"
         >
-          <Move className="w-4 h-4 text-gray-500" />
+          <Move className={`w-4 h-4 transition-all duration-200 
+            ${isDragging ? 'text-blue-500 rotate-12' : 'text-gray-500'}`} />
         </div>
 
         {/* 1. AI摘要 - 点击触发生成或切换显示 */}
