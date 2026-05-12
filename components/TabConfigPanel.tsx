@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTabConfigStore } from '@/store/useTabConfigStore';
-import { ChevronUp, ChevronDown, CheckSquare, Square, Save, Info, Lock, ArrowDown, ArrowRight } from 'lucide-react';
+import { ChevronUp, ChevronDown, CheckSquare, Square, Save, Info, Lock } from 'lucide-react';
 
 interface RSSSource {
   id: number;
@@ -34,8 +34,9 @@ export default function TabConfigPanel() {
   } = useTabConfigStore();
   
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [fixedSectionCollapsed, setFixedSectionCollapsed] = useState(false);
-  const [rssSectionCollapsed, setRssSectionCollapsed] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [fixedSectionCollapsed, setFixedSectionCollapsed] = useState(true);
+  const [rssSectionCollapsed, setRssSectionCollapsed] = useState(true);
   
   // 组件挂载时从后端加载配置（多设备同步）
   useEffect(() => {
@@ -128,9 +129,18 @@ export default function TabConfigPanel() {
   const handleSave = async () => {
     setSaveStatus('idle');
     const success = await syncToBackend();
-    setSaveStatus(success ? 'success' : 'error');
+    if (success) {
+      setSaveMessage('保存成功');
+      setSaveStatus('success');
+    } else {
+      setSaveMessage('请先登录后再保存配置');
+      setSaveStatus('error');
+    }
     // 3秒后清除状态提示
-    setTimeout(() => setSaveStatus('idle'), 3000);
+    setTimeout(() => {
+      setSaveStatus('idle');
+      setSaveMessage(null);
+    }, 3000);
   };
   
   // 只在客户端渲染后计算这些值，避免水合错误
@@ -142,18 +152,21 @@ export default function TabConfigPanel() {
       {/* 内容区域 - 可滚动 */}
       <div className="flex-1">
         {/* 固定栏目配置区 - 可折叠卡片 */}
-        <div className="border-b border-gray-100">
+        <div className="border-b border-gray-200">
           {/* 卡片标题行 */}
-          <div className="px-3 py-3 flex items-center justify-between">
+          <div className="px-3 py-3 flex items-center justify-between bg-gradient-to-b from-gray-50 to-white shadow-sm">
             <button
               onClick={() => setFixedSectionCollapsed(!fixedSectionCollapsed)}
               className="flex items-center gap-2 hover:text-gray-600 transition-colors flex-1"
             >
-              {fixedSectionCollapsed ? (
-                <ArrowRight className="w-4 h-4 text-gray-400" />
-              ) : (
-                <ArrowDown className="w-4 h-4 text-gray-400" />
-              )}
+              {/* 三角形图标：收起向右，展开向下 */}
+              <svg 
+                className={`w-3 h-3 text-gray-500 transition-transform duration-200 ${fixedSectionCollapsed ? '' : 'rotate-90'}`}
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
               <h3 className="text-sm font-medium text-gray-700">
                 固定栏目 
                 <span className="text-xs text-gray-400 font-normal ml-1">(上→下 = 首页左→右)</span>
@@ -162,11 +175,10 @@ export default function TabConfigPanel() {
             
             {/* 保存配置按钮 */}
             <div className="flex items-center gap-2 flex-shrink-0">
-              {saveStatus === 'success' && (
-                <span className="text-xs text-green-600">保存成功</span>
-              )}
-              {saveStatus === 'error' && (
-                <span className="text-xs text-orange-600 font-medium">请先登录后再保存配置</span>
+              {saveMessage && (
+                <span className={`text-xs ${saveStatus === 'success' ? 'text-green-600' : 'text-orange-600 font-medium'}`}>
+                  {saveMessage}
+                </span>
               )}
               <button
                 onClick={handleSave}
@@ -182,14 +194,6 @@ export default function TabConfigPanel() {
               </button>
             </div>
           </div>
-                
-          {/* 保存状态提示 */}
-          {!hasUnsavedChanges && (
-            <div className="px-3 pb-2 text-[10px] text-gray-400">所有更改已保存</div>
-          )}
-          {hasUnsavedChanges && (
-            <div className="px-3 pb-2 text-[10px] text-orange-500">有未保存的更改，点击&quot;保存配置&quot;同步到云端</div>
-          )}
           
           {/* 卡片内容区 */}
           {!fixedSectionCollapsed && (
@@ -244,23 +248,26 @@ export default function TabConfigPanel() {
         </div>
               
         {/* RSS源栏目配置区 - 可折叠卡片 */}
-        <div>
+        <div className="border-b border-gray-200">
           {/* 卡片标题行 */}
           <button
             onClick={() => setRssSectionCollapsed(!rssSectionCollapsed)}
-            className="w-full px-3 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            className="w-full px-3 py-3 flex items-center justify-between bg-gradient-to-b from-gray-50 to-white shadow-sm hover:from-gray-100 hover:to-gray-50 transition-all"
           >
             <div className="flex items-center gap-2">
+              {/* 三角形图标：收起向右，展开向下 */}
+              <svg 
+                className={`w-3 h-3 text-gray-500 transition-transform duration-200 ${rssSectionCollapsed ? '' : 'rotate-90'}`}
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
               <h3 className="text-sm font-medium text-gray-700">RSS源栏目</h3>
               <span className={`text-xs ${vRSSCount >= 10 ? 'text-orange-500 font-medium' : 'text-gray-500'}`}>
                 (最多选择10个，已选 {vRSSCount})
               </span>
             </div>
-            {rssSectionCollapsed ? (
-              <ArrowRight className="w-4 h-4 text-gray-400" />
-            ) : (
-              <ArrowDown className="w-4 h-4 text-gray-400" />
-            )}
           </button>
                 
           {/* 卡片内容区 */}
@@ -350,11 +357,6 @@ export default function TabConfigPanel() {
               </div>
             </div>
           )}
-        </div>
-              
-        {/* 底部提示 */}
-        <div className="px-3 py-1.5 bg-gray-50 text-center text-[10px] text-gray-400 border-t border-gray-100">
-          配置修改后需点击&ldquo;保存配置&rdquo;按钮才会生效
         </div>
       </div>
     </div>

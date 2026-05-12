@@ -136,8 +136,8 @@ export default function SubscribePage() {
   return (
     <div className="flex flex-col min-h-screen bg-[#f5f1e8]">
       <header className="sticky top-0 z-30 bg-[#faf7f0] border-b border-[#e8e0d0] safe-top">
-        <div className="h-[52px] flex items-center px-4">
-          {selectedTags.length > 0 && tab === 'tags' && (
+        {selectedTags.length > 0 && tab === 'tags' && (
+          <div className="h-[52px] flex items-center px-4">
             <div className="ml-auto flex items-center gap-2">
               <button
                 onClick={handleViewResults}
@@ -153,8 +153,8 @@ export default function SubscribePage() {
                 清除全部
               </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
         <div className="flex">
           {tabs.map(({ key, label, icon: Icon }) => (
             <button key={key} onClick={() => setTab(key)}
